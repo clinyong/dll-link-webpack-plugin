@@ -1,0 +1,1 @@
+A webpack plugin aims to replace DllReferencePlugin. This plugin can monitor changes and rebuild automatically.
