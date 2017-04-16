@@ -6,19 +6,13 @@ import * as chalk from "chalk";
 import * as webpack from "webpack";
 
 const cacheDir = path.resolve(".dll.cache");
-const cacheJSDir = `${cacheDir}/js`;
-const cacheJsonDir = `${cacheDir}/json`;
+const cacheOutputDir = `${cacheDir}/output`;
 const manifestFile = `${cacheDir}/manifest.json`;
 let hasCompile = false;
 
 const status = {
     ERROR: "ERROR"
 };
-
-function initDir() {
-    fs.mkdirSync(cacheDir);
-    fs.writeFileSync(manifestFile, JSON.stringify({ entry: {} }));
-}
 
 function print(msg, level) {
     let color = null;
@@ -33,6 +27,16 @@ function print(msg, level) {
     console.log(color(`[dll-link-webpack-plugin]: ${msg}`));
 }
 
+interface DllConfigFile {
+    entry: string | string[] | webpack.Entry;
+    outputJSNames: string[];
+}
+
+interface ManifestCache {
+    configFiles: { [index: string]: DllConfigFile; };
+    yarnLock: string;
+}
+
 export interface Output {
     jsNames: string[];
     jsPath: string;
@@ -45,17 +49,21 @@ export interface DllLinkWebpackPluginOptions {
     manifestNames?: string[];
 }
 
+function md5Slice(msg) {
+    return md5(msg).slice(0, 10);
+}
+
 class DllLinkWebpackPlugin {
     output: Output;
     config: webpack.Configuration;
     referencePlugins: webpack.DllReferencePlugin[];
     updateCache: boolean;
+    manifestCache: ManifestCache;
+    configIndex: string;
+    cacheJSDir: string;
+    cacheJSONDir: string;
 
     constructor(options: DllLinkWebpackPluginOptions) {
-        if (!fs.existsSync(cacheDir)) {
-            initDir();
-        }
-
         const { config, manifestNames } = options;
         if (manifestNames && !_.isArray(manifestNames)) {
             throw new Error("manifest names must be an array.");
@@ -63,6 +71,45 @@ class DllLinkWebpackPlugin {
 
         const { output, entry, plugins } = config;
 
+        // check cache
+        this.configIndex = md5Slice(config.toString());
+        const outputDir = `${cacheOutputDir}/${this.configIndex}`;
+        this.cacheJSDir = `${outputDir}/js`;
+        this.cacheJSONDir = `${outputDir}/json`;
+
+        if (fs.existsSync(manifestFile)) {
+            this.manifestCache = JSON.parse(fs.readFileSync(manifestFile));
+        } else {
+            this.manifestCache = {
+                configFiles: {},
+                yarnLock: ""
+            };
+        }
+
+        const configCache = this.manifestCache.configFiles[this.configIndex];
+        let updateEntry = !configCache;
+        if (configCache) {
+            updateEntry = !_.isEqual(configCache.entry, entry);
+            if (updateEntry) {
+                configCache.entry = entry;
+            }
+        } else {
+            this.manifestCache.configFiles[this.configIndex] = {
+                entry,
+                outputJSNames: []
+            };
+        }
+
+        const yarnMD5 = md5Slice(fs.readFileSync("yarn.lock").toString());
+        const updateYarn = !(this.manifestCache.yarnLock === yarnMD5);
+        if (updateYarn) {
+            this.manifestCache.yarnLock = yarnMD5;
+        }
+
+        this.updateCache = updateYarn || updateEntry;
+        this.updateManifestCache();
+
+        // rewrite config
         let index = -1;
         for (let i = 0; i < plugins.length; i++) {
             if (plugins[i] instanceof webpack.DllPlugin) {
@@ -83,21 +130,19 @@ class DllLinkWebpackPlugin {
         const jsonNameTPL = dllJsonFullPath.slice(i + 1);
 
         let outputJsonNames = [];
-        let outputJSNames = [];
         Object.keys(entry).forEach(entryName => {
             outputJsonNames.push(jsonNameTPL.replace("[name]", entryName));
-            outputJSNames.push(output.filename.replace("[name]", entryName));
         });
 
         this.output = {
-            jsNames: outputJSNames,
+            jsNames: [],
             jsPath: output.path,
             jsonNames: outputJsonNames,
             jsonPath: dllJsonPath
         };
 
-        config.output.path = cacheJSDir;
-        dllPlugin.options.path = `${cacheJsonDir}/${jsonNameTPL}`;
+        config.output.path = this.cacheJSDir;
+        dllPlugin.options.path = `${this.cacheJSONDir}/${jsonNameTPL}`;
         config.plugins[index] = dllPlugin;
 
         this.config = config;
@@ -113,25 +158,15 @@ class DllLinkWebpackPlugin {
             }));
         }
         this.referencePlugins = referenceConf.map(conf => new webpack.DllReferencePlugin(conf));
+    }
 
-        // check cache
+    updateManifestCache() {
+        fs.writeFile(manifestFile, JSON.stringify(this.manifestCache));
+    }
 
-        const manifestCache = JSON.parse(fs.readFileSync(manifestFile));
-        const updateEntry = !_.isEqual(manifestCache.entry, entry);
-        if (updateEntry) {
-            manifestCache.entry = entry;
-        }
-
-        const yarnMD5 = md5(fs.readFileSync("yarn.lock").toString());
-        const updateYarn = !(manifestCache.yarnLock === yarnMD5);
-        if (updateYarn) {
-            manifestCache.yarnLock = yarnMD5;
-        }
-
-        this.updateCache = updateYarn || updateEntry;
-        if (this.updateCache) {
-            fs.writeFileSync(manifestFile, JSON.stringify(manifestCache));
-        }
+    copyFile() {
+        fs.copySync(this.cacheJSDir, this.output.jsPath);
+        fs.copySync(`${this.cacheJSONDir}/${this.output.jsonNames}`, `${this.output.jsonPath}/${this.output.jsonNames}`);
     }
 
     apply(compiler) {
@@ -142,17 +177,15 @@ class DllLinkWebpackPlugin {
                 if (this.updateCache) {
                     webpack(this.config, (err, stats) => {
                         const assets = stats.toJson().assets;
-                        console.log(assets);
-
-                        fs.copySync(cacheJSDir, this.output.jsPath);
-                        fs.copySync(cacheJsonDir, this.output.jsonPath);
+                        this.manifestCache.configFiles[this.configIndex].outputJSNames = assets.map(asset => assets.name);
+                        this.updateManifestCache();
+                        this.copyFile();
                         return cb();
                     });
+                } else {
+                    this.copyFile();
+                    return cb();
                 }
-
-                fs.copySync(cacheJSDir, this.output.jsPath);
-                fs.copySync(cacheJsonDir, this.output.jsonPath);
-                return cb();
             } else {
                 return cb();
             }
