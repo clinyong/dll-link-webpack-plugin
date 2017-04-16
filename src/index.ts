@@ -141,16 +141,8 @@ class DllLinkWebpackPlugin {
 
                 if (this.updateCache) {
                     webpack(this.config, (err, stats) => {
-                        process.stdout.write(stats.toString({
-                            colors: true,
-                            modules: false,
-                            children: false,
-                            chunks: false,
-                            chunkModules: false
-                        }) + "\n\n");
-
-                        let count = 0;
-                        const len = this.output.jsNames.length + this.output.jsonNames.length;
+                        const assets = stats.toJson().assets;
+                        console.log(assets);
 
                         fs.copySync(cacheJSDir, this.output.jsPath);
                         fs.copySync(cacheJsonDir, this.output.jsonPath);
@@ -172,4 +164,4 @@ class DllLinkWebpackPlugin {
     }
 }
 
-export default DllLinkWebpackPlugin;
+module.exports = DllLinkWebpackPlugin;
