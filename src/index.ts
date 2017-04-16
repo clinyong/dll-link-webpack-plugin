@@ -107,7 +107,6 @@ class DllLinkWebpackPlugin {
         }
 
         this.updateCache = updateYarn || updateEntry;
-        this.updateManifestCache();
 
         // rewrite config
         let index = -1;
@@ -158,6 +157,10 @@ class DllLinkWebpackPlugin {
             }));
         }
         this.referencePlugins = referenceConf.map(conf => new webpack.DllReferencePlugin(conf));
+
+        if (!this.updateCache && !fs.existsSync(`${this.output.jsonPath}/${this.output.jsonNames}`)) {
+            this.copyFile();
+        }
     }
 
     updateManifestCache() {
@@ -183,7 +186,6 @@ class DllLinkWebpackPlugin {
                         return cb();
                     });
                 } else {
-                    this.copyFile();
                     return cb();
                 }
             } else {
