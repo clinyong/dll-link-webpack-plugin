@@ -180,7 +180,7 @@ class DllLinkWebpackPlugin {
                 if (this.updateCache) {
                     webpack(this.config, (err, stats) => {
                         const assets = stats.toJson().assets;
-                        this.manifestCache.configFiles[this.configIndex].outputJSNames = assets.map(asset => assets.name);
+                        this.manifestCache.configFiles[this.configIndex].outputJSNames = assets.map(asset => asset.name);
                         this.updateManifestCache();
                         this.copyFile();
                         return cb();
