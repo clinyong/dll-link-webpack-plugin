@@ -5,8 +5,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "publish": "npm run build && npm publish"
+    "watch": "tsc -w",
+    "build": "tsc"
   },
   "author": "clinyong <clinyong@gmail.com>",
   "license": "MIT",
