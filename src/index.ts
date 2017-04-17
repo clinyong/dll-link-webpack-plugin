@@ -74,7 +74,7 @@ class DllLinkWebpackPlugin {
         const { output, entry, plugins } = config;
 
         // check cache
-        this.configIndex = md5Slice(config.toString());
+        this.configIndex = md5Slice(JSON.stringify(config));
         const outputDir = `${cacheOutputDir}/${this.configIndex}`;
         this.cacheJSDir = `${outputDir}/js`;
         this.cacheJSONDir = `${outputDir}/json`;
