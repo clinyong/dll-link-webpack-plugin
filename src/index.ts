@@ -65,6 +65,8 @@ class DllLinkWebpackPlugin {
     manifestNames: string[];
 
     constructor(options: DllLinkWebpackPluginOptions) {
+        this.check = this.check.bind(this);
+
         const { config, manifestNames } = options;
         if (manifestNames && !_.isArray(manifestNames)) {
             throw new Error("manifest names must be an array.");
@@ -159,19 +161,6 @@ class DllLinkWebpackPlugin {
             }));
         }
         this.referencePlugins = referenceConf.map(conf => new webpack.DllReferencePlugin(conf));
-
-        if (!this.updateCache) {
-            this.output.jsNames.forEach(name => {
-                if (!fs.existsSync(name)) {
-                    this.copyJSFile(name);
-                }
-            });
-            this.output.jsonNames.forEach(name => {
-                if (!fs.existsSync(name)) {
-                    this.copyJSONFile(name);
-                }
-            });
-        }
     }
 
     filterJSOutput(outputNames) {
@@ -203,27 +192,41 @@ class DllLinkWebpackPlugin {
         });
     }
 
-    apply(compiler) {
-        compiler.plugin("before-compile", (compilation, cb) => {
-            if (!hasCompile) {
-                hasCompile = true;
+    check(compilation, cb) {
+        if (!hasCompile) {
+            hasCompile = true;
 
-                if (this.updateCache) {
-                    webpack(this.config, (err, stats) => {
-                        const assets = stats.toJson().assets.map(asset => asset.name);
-                        this.manifestCache.configFiles[this.configIndex].outputJSNames = assets;
-                        this.output.jsNames = this.filterJSOutput(assets);
-                        this.updateManifestCache();
-                        this.copyFile();
-                        return cb();
-                    });
-                } else {
+            if (this.updateCache) {
+                webpack(this.config, (err, stats) => {
+                    const assets = stats.toJson().assets.map(asset => asset.name);
+                    this.manifestCache.configFiles[this.configIndex].outputJSNames = assets;
+                    this.output.jsNames = this.filterJSOutput(assets);
+                    this.updateManifestCache();
+                    this.copyFile();
                     return cb();
-                }
+                });
             } else {
+                this.output.jsNames.forEach(name => {
+                    const namePath = `${this.output.jsPath}/${name}`;
+                    if (!fs.existsSync(namePath)) {
+                        this.copyJSFile(name);
+                    }
+                });
+                this.output.jsonNames.forEach(name => {
+                    const namePath = `${this.output.jsonPath}/${name}`;
+                    if (!fs.existsSync(namePath)) {
+                        this.copyJSONFile(name);
+                    }
+                });
                 return cb();
             }
-        });
+        } else {
+            return cb();
+        }
+    }
+
+    apply(compiler) {
+        compiler.plugin("before-compile", this.check);
 
         this.referencePlugins.forEach(plugin => {
             plugin.apply.call(plugin, compiler);
