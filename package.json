@@ -4,10 +4,6 @@
   "description": "a webpack plugin aims to replace DllReferencePlugin",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "scripts": {
-    "watch": "tsc -w",
-    "build": "tsc"
-  },
   "author": "clinyong <clinyong@gmail.com>",
   "license": "MIT",
   "keywords": [
