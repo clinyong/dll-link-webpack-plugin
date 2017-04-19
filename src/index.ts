@@ -34,6 +34,7 @@ interface DllConfigFile {
 
 interface ManifestCache {
     configFiles: { [index: string]: DllConfigFile; };
+    currentConfig: string;
     yarnLock: string;
 }
 
@@ -63,6 +64,7 @@ class DllLinkWebpackPlugin {
     cacheJSDir: string;
     cacheJSONDir: string;
     manifestNames: string[];
+    shouldCopy: boolean;
 
     constructor(options: DllLinkWebpackPluginOptions) {
         this.check = this.check.bind(this);
@@ -86,7 +88,8 @@ class DllLinkWebpackPlugin {
         } else {
             this.manifestCache = {
                 configFiles: {},
-                yarnLock: ""
+                yarnLock: "",
+                currentConfig: ""
             };
         }
 
@@ -111,6 +114,8 @@ class DllLinkWebpackPlugin {
         }
 
         this.updateCache = updateYarn || updateEntry;
+        this.shouldCopy = !this.manifestCache.currentConfig || this.manifestCache.currentConfig !== this.configIndex;
+        this.manifestCache.currentConfig = this.configIndex;
 
         // rewrite config
         let index = -1;
@@ -206,18 +211,10 @@ class DllLinkWebpackPlugin {
                     return cb();
                 });
             } else {
-                this.output.jsNames.forEach(name => {
-                    const namePath = `${this.output.jsPath}/${name}`;
-                    if (!fs.existsSync(namePath)) {
-                        this.copyJSFile(name);
-                    }
-                });
-                this.output.jsonNames.forEach(name => {
-                    const namePath = `${this.output.jsonPath}/${name}`;
-                    if (!fs.existsSync(namePath)) {
-                        this.copyJSONFile(name);
-                    }
-                });
+                if (this.shouldCopy) {
+                    this.updateManifestCache();
+                    this.copyFile();
+                }
                 return cb();
             }
         } else {
