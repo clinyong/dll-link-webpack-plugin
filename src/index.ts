@@ -214,6 +214,19 @@ class DllLinkWebpackPlugin {
                 if (this.shouldCopy) {
                     this.updateManifestCache();
                     this.copyFile();
+                } else {
+                    this.output.jsNames.forEach(name => {
+                        const namePath = `${this.output.jsPath}/${name}`;
+                        if (!fs.existsSync(namePath)) {
+                            this.copyJSFile(name);
+                        }
+                    });
+                    this.output.jsonNames.forEach(name => {
+                        const namePath = `${this.output.jsonPath}/${name}`;
+                        if (!fs.existsSync(namePath)) {
+                            this.copyJSONFile(name);
+                        }
+                    });
                 }
                 return cb();
             }
