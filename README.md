@@ -1,3 +1,5 @@
+## Dll Link Plugin
+
 When using `DllReferencePlugin`，you will have to indicate the manifest file or context.
 
 ```js
@@ -45,7 +47,7 @@ module.exports = {
 }
 ```
 
-Then compile.
+No `DllReferencePlugin` any more, then compile.
 
 ```js
 $ webpack --config webpack.config.js
@@ -53,7 +55,7 @@ $ webpack --config webpack.config.js
 
 That's it! What you have to do is require the normal dll config file. Every time you run the above command, it will help you to detect the change and rebuild the vendors file automatically.
 
-By now, this plugin use `yarn.lock` to track dependency. So make sure you are using [yarn](https://yarnpkg.com/en/).
+By now, this plugin uses `yarn.lock` to track dependency. So make sure you are using [yarn](https://yarnpkg.com/en/).
 
 ## Install
 
