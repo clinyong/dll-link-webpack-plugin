@@ -15,7 +15,7 @@ const status = {
     ERROR: "ERROR"
 };
 
-var FS_ACCURACY = 10000;
+const FS_ACCURACY = 10000;
 
 function print(msg, level) {
     let color = null;
