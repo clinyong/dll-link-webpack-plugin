@@ -4,6 +4,7 @@ import * as _ from "lodash";
 import * as md5 from "md5";
 import * as chalk from "chalk";
 import * as webpack from "webpack";
+import * as fs2 from "fs";
 
 const cacheDir = path.resolve(".dll.cache");
 const cacheOutputDir = `${cacheDir}/output`;
@@ -13,6 +14,8 @@ let hasCompile = false;
 const status = {
     ERROR: "ERROR"
 };
+
+var FS_ACCURACY = 10000;
 
 function print(msg, level) {
     let color = null;
@@ -65,6 +68,7 @@ class DllLinkWebpackPlugin {
     cacheJSONDir: string;
     manifestNames: string[];
     shouldCopy: boolean;
+    pluginStartTime: number;
 
     constructor(options: DllLinkWebpackPluginOptions) {
         this.check = this.check.bind(this);
@@ -166,6 +170,7 @@ class DllLinkWebpackPlugin {
             }));
         }
         this.referencePlugins = referenceConf.map(conf => new webpack.DllReferencePlugin(conf));
+        this.pluginStartTime = Date.now()
     }
 
     filterJSOutput(outputNames) {
@@ -177,15 +182,23 @@ class DllLinkWebpackPlugin {
     }
 
     updateManifestCache() {
-        fs.writeFile(manifestFile, JSON.stringify(this.manifestCache));
+        fs.writeFileSync(manifestFile, JSON.stringify(this.manifestCache));
     }
 
     copyJSFile(name: string) {
-        fs.copySync(`${this.cacheJSDir}/${name}`, `${this.output.jsPath}/${name}`);
+        fs.copySync(this.getCacheJSPath(name), `${this.output.jsPath}/${name}`,{preserveTimestamps: true});
     }
 
     copyJSONFile(name: string) {
-        fs.copySync(`${this.cacheJSONDir}/${name}`, `${this.output.jsonPath}/${name}`);
+        fs.copySync(this.getCacheJSONPath(name), `${this.output.jsonPath}/${name}`,{preserveTimestamps: true});
+    }
+
+    getCacheJSPath(name: string){
+        return `${this.cacheJSDir}/${name}`
+    }
+
+    getCacheJSONPath(name: string){
+        return `${this.cacheJSONDir}/${name}`
     }
 
     copyFile() {
@@ -197,15 +210,25 @@ class DllLinkWebpackPlugin {
         });
     }
 
+    modifyGenerateFileModifyTime() {
+        const time = parseInt((Math.floor((this.pluginStartTime - FS_ACCURACY) /1000)).toFixed())
+        this.output.jsNames.forEach(name => {
+            fs.utimesSync(this.getCacheJSPath(name), time, time)
+        });
+        this.output.jsonNames.forEach(name => {
+            fs.utimesSync(this.getCacheJSONPath(name), time, time)
+        });
+    }
+
     check(compilation, cb) {
         if (!hasCompile) {
             hasCompile = true;
-
             if (this.updateCache) {
                 webpack(this.config, (err, stats) => {
                     const assets = stats.toJson().assets.map(asset => asset.name);
                     this.manifestCache.configFiles[this.configIndex].outputJSNames = assets;
                     this.output.jsNames = this.filterJSOutput(assets);
+                    this.modifyGenerateFileModifyTime();
                     this.updateManifestCache();
                     this.copyFile();
                     return cb();
