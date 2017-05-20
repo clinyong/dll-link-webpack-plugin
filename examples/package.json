@@ -2,16 +2,10 @@
   "name": "examples",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "simple": "webpack --config ./simple/webpack.config.js",
-    "multiple": "webpack --config ./multiple-entries/webpack.config.js"
+    "simple": "../node_modules/.bin/webpack --config ./simple/webpack.config.js",
+    "multiple": "../node_modules/.bin/webpack --config ./multiple-entries/webpack.config.js"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "dll-link-webpack-plugin": "^0.0.9",
-    "webpack": "^2.4.1"
-  }
+  "author": "clinyong"
 }

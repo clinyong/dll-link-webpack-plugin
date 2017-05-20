@@ -1,4 +1,4 @@
 dist
 node_modules
-.dll.cache
+.dll-link-plugin/
 examples/build
