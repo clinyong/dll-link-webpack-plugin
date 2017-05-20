@@ -32,10 +32,10 @@ export class CacheController {
     private manifestCache: ManifestCache;
     private currentConfigContent: DllConfigFile;
     private configIndex: string;
-    shouldUpdate: boolean;
-    cacheJSDir: string;
-    cacheJSONDir: string;
-    manifestFile: string;
+    private shouldUpdate: boolean;
+    private cacheJSDir: string;
+    private cacheJSONDir: string;
+    private manifestFile: string;
 
     constructor(options: CacheOptions) {
         const { cacheDir, configIndex, manifestFile } = options;
@@ -104,5 +104,9 @@ export class CacheController {
 
     public getCacheJSNames() {
         return this.currentConfigContent.outputJSNames;
+    }
+
+    public shouldUpdateCache() {
+        return this.shouldUpdate;
     }
 }

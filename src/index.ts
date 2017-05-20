@@ -67,7 +67,7 @@ class DllLinkWebpackPlugin {
     async check(compilation, cb) {
         if (!this.hasCompile) {
             this.hasCompile = true;
-            if (this.cacheController.shouldUpdate) {
+            if (this.cacheController.shouldUpdateCache()) {
                 const assets = await this.bundleController.webpackBuild();
                 this.cacheController.updateJSNamesCache(assets);
                 this.cacheController.writeCache();
