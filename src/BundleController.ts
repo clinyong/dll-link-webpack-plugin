@@ -92,7 +92,6 @@ export class BundleController {
         let referenceConf: webpack.DllReferencePlugin.Options[] = referenceNames.map(name => ({
             manifest: `${this.outputPath.json.dist}/${name}`
         }) as any);
-        console.log(referenceConf);
         if (dllOptions.context) {
             referenceConf = referenceConf.map(conf => ({
                 ...conf,
@@ -137,7 +136,6 @@ export class BundleController {
     }
 
     public copyAllFiles() {
-        console.log(this.outputFiles.jsNames);
         this.outputFiles.jsNames.forEach(name => {
             this.copyFile(name, true);
         });
