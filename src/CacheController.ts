@@ -33,7 +33,6 @@ export class CacheController {
     private currentConfigContent: DllConfigFile;
     private configIndex: string;
     shouldUpdate: boolean;
-    shouldCopy: boolean;
     cacheJSDir: string;
     cacheJSONDir: string;
     manifestFile: string;
@@ -80,7 +79,6 @@ export class CacheController {
         }
 
         this.shouldUpdate = updateYarn || updateEntry;
-        this.shouldCopy = !this.manifestCache.currentConfigIndex || this.manifestCache.currentConfigIndex !== this.configIndex;
         this.updateCache("currentConfigIndex", this.configIndex);
     }
 
