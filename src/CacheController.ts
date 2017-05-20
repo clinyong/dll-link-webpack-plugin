@@ -1,5 +1,4 @@
 import * as fs from "fs-extra";
-import * as path from "path";
 import * as md5 from "md5";
 import * as webpack from "webpack";
 import * as _ from "lodash";

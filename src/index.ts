@@ -1,47 +1,12 @@
 import * as path from "path";
-import * as fs from "fs-extra";
 import * as _ from "lodash";
 import * as md5 from "md5";
-import * as chalk from "chalk";
 import * as webpack from "webpack";
-import * as fs2 from "fs";
 import { CacheController } from "./CacheController";
 import { BundleController } from "./BundleController";
 
 const cacheDir = path.resolve(".dll-link-plugin");
-const cacheOutputDir = `${cacheDir}/output`;
 const MANIFEST_FILE = "manifest.json";
-let hasCompile = false;
-
-const status = {
-    ERROR: "ERROR"
-};
-
-const FS_ACCURACY = 10000;
-
-function print(msg, level) {
-    let color = null;
-    switch (level) {
-        case status.ERROR:
-            color = chalk.red;
-            break;
-        default:
-            color = chalk.white;
-    }
-
-    console.log(color(`[dll-link-webpack-plugin]: ${msg}`));
-}
-
-interface DllConfigFile {
-    entry: string | string[] | webpack.Entry;
-    outputJSNames: string[];
-}
-
-interface ManifestCache {
-    configFiles: { [index: string]: DllConfigFile; };
-    currentConfig: string;
-    yarnLock: string;
-}
 
 export interface Output {
     jsNames: string[];
@@ -72,7 +37,7 @@ class DllLinkWebpackPlugin {
             throw new Error("manifest names must be an array.");
         }
 
-        const { output, entry, plugins } = config;
+        const { entry } = config;
 
         const configIndex = md5Slice(JSON.stringify(config));
         const cacheJSPath = `${cacheDir}/${configIndex}/js`;

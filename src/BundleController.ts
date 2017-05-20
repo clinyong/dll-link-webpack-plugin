@@ -34,7 +34,6 @@ export class BundleController {
     private webpackConfig: webpack.Configuration;
     private outputFiles: OutputFiles;
     private outputPath: OutputPath;
-    private cacheConfig: CacheConfig;
     private manifestNames: string[];
     private referencePlugins: webpack.DllReferencePlugin[];
     private pluginStartTime: number;
