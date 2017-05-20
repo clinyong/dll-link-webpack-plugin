@@ -14,10 +14,12 @@
     "DllReferencePlugin"
   ],
   "devDependencies": {
+    "@types/fs-extra": "^3.0.0",
     "@types/node": "^7.0.12",
     "@types/webpack": "^2.2.14",
     "tslint": "^5.1.0",
-    "typescript": "^2.2.2"
+    "typescript": "^2.2.2",
+    "webpack": "^2.5.1"
   },
   "dependencies": {
     "chalk": "^1.1.3",
