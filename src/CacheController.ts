@@ -4,9 +4,6 @@ import * as md5 from "md5";
 import * as webpack from "webpack";
 import * as _ from "lodash";
 
-const cacheDir = path.resolve(".dll-link-plugin");
-const manifestFile = `${cacheDir}/manifest.json`;
-const cacheOutputDir = `${cacheDir}/output`;
 
 function md5Slice(msg) {
     return md5(msg).slice(0, 10);
@@ -28,6 +25,8 @@ export interface ManifestCache {
 export interface CacheOptions {
     configIndex: string;
     entry: DllEntry;
+    cacheDir: { js: string, json: string };
+    manifestFile: string;
 }
 
 export class CacheController {
@@ -38,13 +37,16 @@ export class CacheController {
     shouldCopy: boolean;
     cacheJSDir: string;
     cacheJSONDir: string;
+    manifestFile: string;
 
     constructor(options: CacheOptions) {
-        this.configIndex = options.configIndex;
+        const { cacheDir, configIndex, manifestFile } = options;
 
-        const outputDir = `${cacheOutputDir}/${this.configIndex}`;
-        this.cacheJSDir = `${outputDir}/js`;
-        this.cacheJSONDir = `${outputDir}/json`;
+        this.configIndex = configIndex;
+
+        this.manifestFile = manifestFile;
+        this.cacheJSDir = cacheDir.js;
+        this.cacheJSONDir = cacheDir.json;
 
         this.readCacheFile();
         this.checkCache(options.entry);
@@ -52,7 +54,7 @@ export class CacheController {
 
     private readCacheFile() {
         try {
-            const content = fs.readFileSync(manifestFile);
+            const content = fs.readFileSync(this.manifestFile);
             this.manifestCache = JSON.parse(content.toString());
         } catch (e) {
             this.manifestCache = {
@@ -84,7 +86,7 @@ export class CacheController {
     }
 
     public writeCache() {
-        fs.writeFileSync(manifestFile, JSON.stringify(this.manifestCache));
+        fs.writeFileSync(this.manifestFile, JSON.stringify(this.manifestCache));
     }
 
     public updateCache(key: "yarnLock" | "currentConfigIndex", val: string) {
@@ -105,13 +107,5 @@ export class CacheController {
 
     public getCacheJSNames() {
         return this.currentConfigContent.outputJSNames;
-    }
-
-    public getCacheDir(isJS?: boolean) {
-        if (isJS) {
-            return this.cacheJSDir;
-        } else {
-            return this.cacheJSONDir;
-        }
     }
 }

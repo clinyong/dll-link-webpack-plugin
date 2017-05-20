@@ -8,9 +8,9 @@ import * as fs2 from "fs";
 import { CacheController } from "./CacheController";
 import { BundleController } from "./BundleController";
 
-const cacheDir = path.resolve(".dll.cache");
+const cacheDir = path.resolve(".dll-link-plugin");
 const cacheOutputDir = `${cacheDir}/output`;
-const manifestFile = `${cacheDir}/manifest.json`;
+const MANIFEST_FILE = "manifest.json";
 let hasCompile = false;
 
 const status = {
@@ -75,13 +75,24 @@ class DllLinkWebpackPlugin {
         const { output, entry, plugins } = config;
 
         const configIndex = md5Slice(JSON.stringify(config));
-        this.cacheController = new CacheController({ configIndex, entry });
+        const cacheJSPath = `${cacheDir}/${configIndex}/js`;
+        const cacheJSONPath = `${cacheDir}/${configIndex}/json`;
+
+        this.cacheController = new CacheController({
+            configIndex,
+            entry,
+            manifestFile: `${cacheDir}/${MANIFEST_FILE}`,
+            cacheDir: {
+                js: cacheJSPath,
+                json: cacheJSONPath
+            }
+        });
         this.bundleController = new BundleController({
             webpackConfig: config,
             cacheConfig: {
                 cacheJSNames: this.cacheController.getCacheJSNames(),
-                cacheJSPath: this.cacheController.getCacheDir(true),
-                cacheJSONPath: this.cacheController.getCacheDir()
+                cacheJSPath,
+                cacheJSONPath
             },
             manifestNames
         });
