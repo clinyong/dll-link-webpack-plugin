@@ -15,7 +15,7 @@ interface OutputPathItem {
 
 interface OutputPath {
     js: OutputPathItem;
-    json: OutputPathItem;
+    json: string;
 }
 
 export interface CacheConfig {
@@ -59,7 +59,6 @@ export class BundleController {
         const dllOptions: webpack.DllPlugin.Options = dllPlugin.options;
         const dllJsonFullPath = dllOptions.path;
         const i = dllJsonFullPath.lastIndexOf("/");
-        const dllJsonPath = dllJsonFullPath.slice(0, i);
         const jsonNameTPL = dllJsonFullPath.slice(i + 1);
         dllPlugin.options.path = `${cacheConfig.cacheJSONPath}/${jsonNameTPL}`;
         webpackConfig.plugins[index] = dllPlugin;
@@ -76,7 +75,7 @@ export class BundleController {
         this.updateOutputJSNames(cacheConfig.cacheJSNames);
         this.outputPath = {
             js: { dist: output.path, src: cacheConfig.cacheJSPath },
-            json: { dist: dllJsonPath, src: cacheConfig.cacheJSONPath }
+            json: cacheConfig.cacheJSONPath
         };
 
         this.initDllReferencePlugins(manifestNames, dllOptions);
@@ -90,7 +89,7 @@ export class BundleController {
     private initDllReferencePlugins(manifestNames: string[], dllOptions: webpack.DllPlugin.Options) {
         let referenceNames = manifestNames || this.outputFiles.jsonNames;
         let referenceConf: webpack.DllReferencePlugin.Options[] = referenceNames.map(name => ({
-            manifest: `${this.outputPath.json.dist}/${name}`
+            manifest: `${this.outputPath.json}/${name}`
         }) as any);
         if (dllOptions.context) {
             referenceConf = referenceConf.map(conf => ({
@@ -101,19 +100,10 @@ export class BundleController {
         this.referencePlugins = referenceConf.map(conf => new webpack.DllReferencePlugin(conf));
     }
 
-    private copyFile(name: string, isJS: boolean) {
-        let filePath = this.outputPath.json;
-        if (isJS) {
-            filePath = this.outputPath.js;
-        }
-
-        fs.copySync(`${filePath.src}/${name}`, `${filePath.dist}/${name}`, { preserveTimestamps: true });
-    }
-
     private modifyGenerateFileModifyTime() {
         let names = [
             ...this.outputFiles.jsNames.map(name => `${this.outputPath.js.src}/${name}`),
-            ...this.outputFiles.jsonNames.map(name => `${this.outputPath.json.src}/${name}`),
+            ...this.outputFiles.jsonNames.map(name => `${this.outputPath.json}/${name}`),
         ];
         const time = parseInt((Math.floor((this.pluginStartTime - FS_ACCURACY) / 1000)).toFixed());
         names.forEach(name => {
@@ -136,11 +126,9 @@ export class BundleController {
     }
 
     public copyAllFiles() {
+        const { dist, src } = this.outputPath.js;
         this.outputFiles.jsNames.forEach(name => {
-            this.copyFile(name, true);
-        });
-        this.outputFiles.jsonNames.forEach(name => {
-            this.copyFile(name, false);
+            fs.copySync(`${src}/${name}`, `${dist}/${name}`, { preserveTimestamps: true });
         });
     }
 
