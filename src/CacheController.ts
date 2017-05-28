@@ -104,4 +104,9 @@ export class CacheController {
     public shouldUpdateCache() {
         return this.shouldUpdate;
     }
+
+    public getCacheVersion() {
+        const { currentConfigIndex, yarnMTime } = this.manifestCache;
+        return currentConfigIndex.slice(0, 3) + yarnMTime.toString().slice(0, 3);
+    }
 }
