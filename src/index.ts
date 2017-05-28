@@ -124,19 +124,30 @@ class DllLinkWebpackPlugin {
     updateNames(compilation, cb) {
         const ver = this.cacheController.getCacheVersion();
 
-        // change assets name
-        const newAssets = {};
-        Object.keys(compilation.assets).forEach(k => {
-            const newKey = changeName(k, ver);
-            newAssets[newKey] = compilation.assets[k];
-        });
-        compilation.assets = newAssets;
+        let entryChunks = {};
 
         // change related chunks name
         const chunks = compilation.chunks as any[];
         for (let i = 0; i < chunks.length; i++) {
-            chunks[i].files = chunks[i].files.map(file => changeName(file, ver));
+            const chunk = chunks[i];
+            if (chunk.isInitial()) {
+                chunk.files = chunk.files.map(file => {
+                    entryChunks[file] = true;
+                    return changeName(file, ver);
+                });
+            }
         }
+
+        // change assets name
+        const newAssets = {};
+        Object.keys(compilation.assets).forEach(k => {
+            let newKey = k;
+            if (entryChunks[k]) {
+                newKey = changeName(k, ver);
+            }
+            newAssets[newKey] = compilation.assets[k];
+        });
+        compilation.assets = newAssets;
 
         return cb();
     }
