@@ -14,6 +14,7 @@ export interface ManifestCache {
     configFiles: { [index: string]: DllConfigFile; };
     currentConfigIndex: string;
     yarnMTime: number;
+    version: string;
 }
 
 export interface CacheOptions {
@@ -53,7 +54,8 @@ export class CacheController {
             this.manifestCache = {
                 configFiles: {},
                 currentConfigIndex: "",
-                yarnMTime: 0
+                yarnMTime: 0,
+                version: "0"
             };
         }
 
@@ -74,7 +76,16 @@ export class CacheController {
         }
 
         this.shouldUpdate = updateYarn || updateEntry;
-        this.updateCache("currentConfigIndex", this.configIndex);
+
+        if (this.shouldUpdate || this.manifestCache.currentConfigIndex !== this.configIndex) {
+            this.updateCache("currentConfigIndex", this.configIndex);
+            this.updateCacheVersion();
+        }
+    }
+
+    private updateCacheVersion() {
+        const version = parseInt(this.manifestCache.version);
+        this.manifestCache.version = version + 1 + "";
     }
 
     public writeCache() {
@@ -103,5 +114,9 @@ export class CacheController {
 
     public shouldUpdateCache() {
         return this.shouldUpdate;
+    }
+
+    public getCacheVersion() {
+        return this.manifestCache.version;
     }
 }

@@ -21,10 +21,17 @@ export interface DllLinkWebpackPluginOptions {
     manifestNames?: string[];
     assetsMode?: boolean;
     htmlMode?: boolean;
+    appendVersion?: boolean;
 }
 
 function md5Slice(msg) {
     return md5(msg).slice(0, 10);
+}
+
+function changeName(name: string, version: string) {
+    const tmp = name.split(".");
+    const ext = tmp.splice(-1, 1, "v" + version);
+    return tmp.concat(ext).join(".");
 }
 
 class DllLinkWebpackPlugin {
@@ -39,6 +46,7 @@ class DllLinkWebpackPlugin {
         this.check = this.check.bind(this);
         this.addAssets = this.addAssets.bind(this);
         this.hookIntoHTML = this.hookIntoHTML.bind(this);
+        this.updateNames = this.updateNames.bind(this);
 
         this.options = options;
 
@@ -101,24 +109,50 @@ class DllLinkWebpackPlugin {
             if (this.cacheController.shouldUpdateCache()) {
                 const assets = await this.bundleController.webpackBuild();
                 this.cacheController.updateJSNamesCache(assets);
-                this.cacheController.writeCache();
             }
 
             const { htmlMode, assetsMode } = this.options;
             if (!htmlMode && !assetsMode) {
                 this.bundleController.copyAllFiles();
             }
+
+            this.cacheController.writeCache();
         }
         return cb();
     }
 
+    updateNames(compilation, cb) {
+        const ver = this.cacheController.getCacheVersion();
+
+        // change assets name
+        const newAssets = {};
+        Object.keys(compilation.assets).forEach(k => {
+            const newKey = changeName(k, ver);
+            newAssets[newKey] = compilation.assets[k];
+        });
+        compilation.assets = newAssets;
+
+        // change related chunks name
+        const chunks = compilation.chunks as any[];
+        for (let i = 0; i < chunks.length; i++) {
+            chunks[i].files = chunks[i].files.map(file => changeName(file, ver));
+        }
+
+        return cb();
+    }
+
     apply(compiler) {
-        const { htmlMode, assetsMode } = this.options;
+        const { htmlMode, assetsMode, appendVersion } = this.options;
         compiler.plugin("before-compile", this.check);
         if (htmlMode) {
             // Hook into the html-webpack-plugin processing
             compiler.plugin("compilation", this.hookIntoHTML);
         }
+
+        if (appendVersion) {
+            compiler.plugin("emit", this.updateNames);
+        }
+
         if (htmlMode || assetsMode) {
             compiler.plugin("emit", this.addAssets);
         }
