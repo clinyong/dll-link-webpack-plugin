@@ -30,7 +30,7 @@ function md5Slice(msg) {
 
 function changeName(name: string, version: string) {
     const tmp = name.split(".");
-    const ext = tmp.splice(-1, 1, "v" + version);
+    const ext = tmp.splice(-1, 1, version);
     return tmp.concat(ext).join(".");
 }
 
