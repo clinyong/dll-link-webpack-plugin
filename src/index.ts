@@ -34,7 +34,7 @@ function changeName(name: string, version: string) {
     return tmp.concat(ext).join(".");
 }
 
-export default class DllLinkWebpackPlugin {
+class DllLinkWebpackPlugin {
     cacheController: CacheController;
     bundleController: BundleController;
     hasCompile: boolean;
