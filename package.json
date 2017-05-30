@@ -1,6 +1,6 @@
 {
   "name": "dll-link-webpack-plugin",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "a webpack plugin aims to replace DllReferencePlugin",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
