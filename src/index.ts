@@ -84,7 +84,12 @@ class DllLinkWebpackPlugin {
 
     hookIntoHTML(compilation) {
         compilation.plugin("html-webpack-plugin-before-html-generation", (htmlPluginData, cb) => {
-            const jsNames = this.cacheController.getCacheJSNames();
+            const { publicPath } = this.options.config.output;
+            let jsNames = this.cacheController.getCacheJSNames();
+            if (publicPath) {
+                jsNames = jsNames.map(name => path.join(publicPath, name));
+            }
+
             const assets = htmlPluginData.assets as { js: string[] };
             assets.js = jsNames.concat(assets.js);
             cb(null, htmlPluginData);
