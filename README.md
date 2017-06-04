@@ -1,38 +1,18 @@
 ## Dll Link Plugin
 
-When using `DllReferencePlugin`，you will have to indicate the manifest file or context.
+This is a webpack plugin that help you to improve webpack build time performance. It is based on [DllReferencePlugin](https://webpack.js.org/plugins/dll-plugin/#dllreferenceplugin). And you can see the difference [here](https://github.com/clinyong/dll-link-webpack-plugin/blob/master/why-use-dll-link.md).
 
-```js
-var webpack = require('webpack');
 
-module.exports = {
-    // ...
-    plugins: [
-        new webpack.DllReferencePlugin({
-            context: '.',
-            manifest: require('xxxx-manifest.json'),
-        })
-    ]
-};
-```
-
-And then compile manually.
+### Install
 
 ```
-$ webpack --config webpack.dll.config.js
-$ webpack --config webpack.config.js
+$ npm install dll-link-webpack-plugin --save-dev
 ```
+By now, this plugin uses `yarn.lock` to track dependency. So make sure you are using [yarn](https://yarnpkg.com/en/).
 
-When vendors change, compile manually again...
+### Basic Usage
 
-```
-$ webpack --config webpack.dll.config.js
-$ webpack --config webpack.config.js
-```
-
-Let's see how things are different with `DllLinkPlugin`.
-
-The config file changes to
+Replace `DllReferencePlugin` with `DllLinkPlugin` in your `webpack.config.js`
 
 ```js
 var DllLinkPlugin = require('dll-link-webpack-plugin');
@@ -47,18 +27,10 @@ module.exports = {
 }
 ```
 
-No `DllReferencePlugin` any more, then compile.
+And directly run
 
-```js
+```
 $ webpack --config webpack.config.js
 ```
 
-That's it! What you have to do is require the normal dll config file. Every time you run the above command, it will help you to detect the change and rebuild the vendors file automatically.
-
-By now, this plugin uses `yarn.lock` to track dependency. So make sure you are using [yarn](https://yarnpkg.com/en/).
-
-## Install
-
-```
-$ npm install dll-link-webpack-plugin --save-dev
-```
+This will automatically generate the DLL file. For more usage, see the [examples](https://github.com/clinyong/dll-link-webpack-plugin/tree/master/examples).
