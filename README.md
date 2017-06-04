@@ -6,7 +6,7 @@ This is a webpack plugin that help you to improve webpack build time performance
 ### Install
 
 ```
-$ npm install dll-link-webpack-plugin --save-dev
+$ yarn add dll-link-webpack-plugin -D
 ```
 By now, this plugin uses `yarn.lock` to track dependency. So make sure you are using [yarn](https://yarnpkg.com/en/).
 
@@ -33,4 +33,4 @@ And directly run
 $ webpack --config webpack.config.js
 ```
 
-This will automatically generate the DLL file. For more usage, see the [examples](https://github.com/clinyong/dll-link-webpack-plugin/tree/master/examples).
+This will automatically generate the DLL file. For more usage, see [examples](https://github.com/clinyong/dll-link-webpack-plugin/tree/master/examples).
