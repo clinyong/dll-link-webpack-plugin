@@ -3,7 +3,6 @@
   "version": "1.0.3",
   "description": "a webpack plugin aims to replace DllReferencePlugin",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "author": "clinyong <clinyong@gmail.com>",
   "license": "MIT",
   "keywords": [
