@@ -1,4 +1,4 @@
-SHELL := /bin/sh
+SHELL := /bin/bash
 export PATH := $(shell pwd)/node_modules/.bin:$(PATH)
 
 watch:
