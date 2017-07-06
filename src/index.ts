@@ -3,6 +3,7 @@ import * as _ from "lodash";
 import * as md5 from "md5";
 import * as fs from "fs-extra";
 import * as webpack from "webpack";
+import * as chalk from "chalk";
 import { CacheController } from "./CacheController";
 import { BundleController } from "./BundleController";
 
@@ -112,6 +113,10 @@ class DllLinkWebpackPlugin {
         if (!this.hasCompile) {
             this.hasCompile = true;
             if (this.cacheController.shouldUpdateCache()) {
+                console.log();
+                console.log(chalk.cyan("[dll-link-plugin]: rebuilding dll."));
+                console.log();
+
                 const assets = await this.bundleController.webpackBuild();
                 this.cacheController.updateJSNamesCache(assets);
             }
