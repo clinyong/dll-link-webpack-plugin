@@ -34,3 +34,25 @@ $ webpack --config webpack.config.js
 ```
 
 This will automatically generate the DLL file. For more usage, see [examples](https://github.com/clinyong/dll-link-webpack-plugin/tree/master/examples).
+
+### Configuration
+
+- `appendVersion`: `true` | `false` Append a dll hash version to your webpack entry filenames.
+- `assetsMode`: `true` | `false` Emit the dll file as webpack assets file.
+- `htmlMode`: `true` | `false` This is useful when you are using [html-webpack-plugin](https://github.com/jantimon/html-webpack-plugin). The dll file will be included in the output html file.
+
+Example for above options:
+
+```js
+module.exports = {
+    // ...
+    plugins: [
+        new DllLinkPlugin({
+            config: require('webpack.dll.config.js'),
+            appendVersion: true,
+            assetsMode: true,
+            htmlMode: true
+        })
+    ]
+}
+```
