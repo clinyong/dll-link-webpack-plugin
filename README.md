@@ -2,6 +2,7 @@
 
 A webpack plugin that simplifies creation of webpack DLL file. It is based on [DllReferencePlugin](https://webpack.js.org/plugins/dll-plugin/#dllreferenceplugin). And you can see the difference [here](https://github.com/clinyong/dll-link-webpack-plugin/blob/master/why-use-dll-link.md).
 
+[中文 README](https://github.com/clinyong/dll-link-webpack-plugin/blob/master/README-zh_CN.md)
 
 ### Install
 
