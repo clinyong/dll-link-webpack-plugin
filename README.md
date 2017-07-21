@@ -1,6 +1,6 @@
 ## Dll Link Plugin
 
-This is a webpack plugin that help you to improve webpack build time performance. It is based on [DllReferencePlugin](https://webpack.js.org/plugins/dll-plugin/#dllreferenceplugin). And you can see the difference [here](https://github.com/clinyong/dll-link-webpack-plugin/blob/master/why-use-dll-link.md).
+A webpack plugin that simplifies creation of webpack DLL file. It is based on [DllReferencePlugin](https://webpack.js.org/plugins/dll-plugin/#dllreferenceplugin). And you can see the difference [here](https://github.com/clinyong/dll-link-webpack-plugin/blob/master/why-use-dll-link.md).
 
 
 ### Install
