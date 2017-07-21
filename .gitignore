@@ -2,3 +2,4 @@ dist
 node_modules
 .dll-link-plugin/
 examples/build
+.npmrc
