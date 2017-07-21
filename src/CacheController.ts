@@ -1,6 +1,7 @@
 import * as fs from "fs-extra";
 import * as webpack from "webpack";
 import * as _ from "lodash";
+import * as md5 from "md5";
 
 
 export type DllEntry = string | string[] | webpack.Entry;
@@ -106,7 +107,7 @@ export class CacheController {
     }
 
     public getCacheVersion() {
-        const { currentConfigIndex, yarnMTime } = this.manifestCache;
-        return currentConfigIndex.slice(0, 3) + yarnMTime.toString().slice(0, 3);
+        const jsNames = this.currentConfigContent.outputJSNames.join(";");
+        return md5(jsNames).slice(0, 6);
     }
 }
