@@ -37,9 +37,9 @@ This will automatically generate the DLL file. For more usage, see [examples](ht
 
 ### Configuration
 
-- `htmlMode`: `true` | `false` This is useful when you are using [html-webpack-plugin](https://github.com/jantimon/html-webpack-plugin). The dll file will be included in the output html file.
-- `assetsMode`: `true` | `false` Emit the dll file as webpack assets file.
-- `appendVersion`: `true` | `false` Append a dll hash version to your webpack entry filenames.
+- `htmlMode`: `true` | `false` This is useful when you are using [html-webpack-plugin](https://github.com/jantimon/html-webpack-plugin). The DLL file will be included in the output html file.
+- `assetsMode`: `true` | `false` Emit the DLL file as webpack assets file.
+- `appendVersion`: `true` | `false` Append a DLL hash version to your webpack entry filenames.
 
 Example for above options:
 
