@@ -2,6 +2,7 @@ import * as fs from "fs-extra";
 import * as webpack from "webpack";
 import * as _ from "lodash";
 import * as md5 from "md5";
+import { getDependency, PackageDependency } from "./utils/packageDependency";
 
 export type DllEntry = string | string[] | webpack.Entry;
 
@@ -13,7 +14,7 @@ export interface DllConfigFile {
 export interface ManifestCache {
 	configFiles: { [index: string]: DllConfigFile };
 	currentConfigIndex: string;
-	yarnMTime: number;
+	entryVersion: PackageDependency;
 }
 
 export interface CacheOptions {
@@ -53,7 +54,7 @@ export class CacheController {
 			this.manifestCache = {
 				configFiles: {},
 				currentConfigIndex: "",
-				yarnMTime: 0
+				entryVersion: {}
 			};
 		}
 
@@ -68,26 +69,19 @@ export class CacheController {
 			this.updateEntryCache(entry);
 		}
 
-		const yarnStats = fs.statSync("yarn.lock");
-		const yarnMTime = yarnStats.mtime.getTime();
-		const updateYarn = !(this.manifestCache.yarnMTime === yarnMTime);
-		if (updateYarn) {
-			this.updateCache("yarnMTime", yarnMTime);
+		const entryVersion = getDependency(entry);
+		let updateDependency = !_.isEqual(this.manifestCache.entryVersion, entryVersion);
+
+		if (updateDependency) {
+			this.manifestCache.entryVersion = entryVersion;
 		}
 
-		this.shouldUpdate = updateYarn || updateEntry;
-		this.updateCache("currentConfigIndex", this.configIndex);
+		this.shouldUpdate = updateDependency || updateEntry;
+		this.manifestCache.currentConfigIndex = this.configIndex;
 	}
 
 	public writeCache() {
 		fs.writeFileSync(this.manifestFile, JSON.stringify(this.manifestCache));
-	}
-
-	public updateCache(
-		key: "yarnMTime" | "currentConfigIndex",
-		val: string | number
-	) {
-		this.manifestCache[key] = val;
 	}
 
 	public updateEntryCache(val: DllEntry) {
