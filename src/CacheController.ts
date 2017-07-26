@@ -7,13 +7,11 @@ import { getDependency, PackageDependency } from "./utils/packageDependency";
 export type DllEntry = string | string[] | webpack.Entry;
 
 export interface DllConfigFile {
-	entry: DllEntry;
 	outputJSNames: string[];
 }
 
 export interface ManifestCache {
 	configFiles: { [index: string]: DllConfigFile };
-	currentConfigIndex: string;
 	entryVersion: PackageDependency;
 }
 
@@ -53,45 +51,25 @@ export class CacheController {
 		} catch (e) {
 			this.manifestCache = {
 				configFiles: {},
-				currentConfigIndex: "",
 				entryVersion: {}
 			};
 		}
 
 		this.currentConfigContent = this.manifestCache.configFiles[
 			this.configIndex
-		] || { entry: "", outputJSNames: [] };
+		] || { outputJSNames: [] };
 	}
 
 	private checkCache(entry: DllEntry) {
-		let updateEntry = !_.isEqual(this.currentConfigContent.entry, entry);
-		if (updateEntry) {
-			this.updateEntryCache(entry);
-		}
-
 		const entryVersion = getDependency(entry);
-		let updateDependency = !_.isEqual(this.manifestCache.entryVersion, entryVersion);
-
-		if (updateDependency) {
-			this.manifestCache.entryVersion = entryVersion;
-		}
-
-		this.shouldUpdate = updateDependency || updateEntry;
-		this.manifestCache.currentConfigIndex = this.configIndex;
+		this.shouldUpdate =
+			this.currentConfigContent.outputJSNames.length === 0 ||
+			!_.isEqual(this.manifestCache.entryVersion, entryVersion);
+		this.manifestCache.entryVersion = entryVersion;
 	}
 
 	public writeCache() {
 		fs.writeFileSync(this.manifestFile, JSON.stringify(this.manifestCache));
-	}
-
-	public updateEntryCache(val: DllEntry) {
-		this.manifestCache.configFiles[
-			this.configIndex
-		] = this.currentConfigContent = Object.assign(
-			{},
-			this.currentConfigContent,
-			{ entry: val }
-		);
 	}
 
 	public updateJSNamesCache(val: string[]) {
