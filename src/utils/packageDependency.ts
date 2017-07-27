@@ -1,7 +1,7 @@
 import * as yarnParser from "./yarnParser";
 import * as fs from "fs";
 
-interface YarnDependency {
+export interface YarnDependency {
 	version: string;
 	dependencies?: PackageDependency;
 }

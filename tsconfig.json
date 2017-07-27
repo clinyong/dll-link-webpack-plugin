@@ -7,7 +7,7 @@
         ],
         "noImplicitAny": false,
         "sourceMap": false,
-        "declaration": false,
+        "declaration": true,
         "outDir": "dist",
         "noEmitOnError": true,
         "moduleResolution": "node",
