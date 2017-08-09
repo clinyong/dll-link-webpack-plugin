@@ -62,10 +62,14 @@ export class CacheController {
 
 	private checkCache(entry: DllEntry) {
 		const entryVersion = getDependency(entry);
-		this.shouldUpdate =
-			this.currentConfigContent.outputJSNames.length === 0 ||
-			!_.isEqual(this.manifestCache.entryVersion, entryVersion);
-		this.manifestCache.entryVersion = entryVersion;
+		if (entryVersion) {
+			this.shouldUpdate =
+				this.currentConfigContent.outputJSNames.length === 0 ||
+				!_.isEqual(this.manifestCache.entryVersion, entryVersion);
+			this.manifestCache.entryVersion = entryVersion;
+		} else {
+			this.shouldUpdate = true;
+		}
 	}
 
 	public writeCache() {

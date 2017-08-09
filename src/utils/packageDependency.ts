@@ -26,9 +26,13 @@ function convertEntryToList(entry: any): string[] {
 	}
 }
 
-export function getDependency(entry: any): PackageDependency {
+export function getDependency(entry: any): PackageDependency | null {
 	let entryList = convertEntryToList(entry);
 	const packageJson = JSON.parse(fs.readFileSync("package.json").toString());
+	if (!packageJson.dependencies) {
+		return null;
+	}
+
 	entryList = entryList
 		.map(item => {
 			const version = packageJson.dependencies[item];
