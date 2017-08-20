@@ -92,7 +92,16 @@ export class DllLinkWebpackPlugin {
 			"html-webpack-plugin-before-html-generation",
 			(htmlPluginData, cb) => {
 				const { publicPath } = this.options.config.output;
-				let jsNames = this.cacheController.getCacheJSNames();
+				let jsNames = this.cacheController
+					.getCacheJSNames()
+					.filter(item => {
+						// only include js files(there may be map files in it)
+						const ext = item.split(".").reverse()[0];
+						if (ext === "js") {
+							return true;
+						}
+						return false;
+					});
 				if (publicPath) {
 					jsNames = jsNames.map(name => path.join(publicPath, name));
 				}
