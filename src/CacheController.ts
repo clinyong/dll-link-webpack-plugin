@@ -1,18 +1,38 @@
 import * as fs from "fs-extra";
 import * as webpack from "webpack";
-import * as _ from "lodash";
 import * as md5 from "md5";
 import { getDependency, PackageDependency } from "./utils/packageDependency";
+
+function isVersionEqual(
+	versionA: PackageDependency,
+	versionB: PackageDependency
+) {
+	if (!versionA && !versionB) {
+		return true;
+	} else if (versionA && versionB) {
+		return Object.keys(versionA).every(
+			k =>
+				versionB[k] &&
+				versionA[k].version === versionB[k].version &&
+				isVersionEqual(
+					versionA[k].dependencies,
+					versionB[k].dependencies
+				)
+		);
+	} else {
+		return false;
+	}
+}
 
 export type DllEntry = string | string[] | webpack.Entry;
 
 export interface DllConfigFile {
 	outputJSNames: string[];
+	entryVersion: PackageDependency;
 }
 
 export interface ManifestCache {
 	configFiles: { [index: string]: DllConfigFile };
-	entryVersion: PackageDependency;
 }
 
 export interface CacheOptions {
@@ -50,14 +70,13 @@ export class CacheController {
 			this.manifestCache = JSON.parse(content.toString());
 		} catch (e) {
 			this.manifestCache = {
-				configFiles: {},
-				entryVersion: {}
+				configFiles: {}
 			};
 		}
 
 		this.currentConfigContent = this.manifestCache.configFiles[
 			this.configIndex
-		] || { outputJSNames: [] };
+		] || { outputJSNames: [], entryVersion: null };
 	}
 
 	private checkCache(entry: DllEntry) {
@@ -65,8 +84,11 @@ export class CacheController {
 		if (entryVersion) {
 			this.shouldUpdate =
 				this.currentConfigContent.outputJSNames.length === 0 ||
-				!_.isEqual(this.manifestCache.entryVersion, entryVersion);
-			this.manifestCache.entryVersion = entryVersion;
+				!isVersionEqual(
+					this.currentConfigContent.entryVersion,
+					entryVersion
+				);
+			this.currentConfigContent.entryVersion = entryVersion;
 		} else {
 			this.shouldUpdate = true;
 		}
