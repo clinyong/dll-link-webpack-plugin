@@ -132,7 +132,7 @@ export class DllLinkWebpackPlugin {
 			this.hasCompile = true;
 			if (this.cacheController.shouldUpdateCache()) {
 				console.log();
-				console.log(chalk.cyan("[dll-link-plugin]: rebuilding dll."));
+				console.log(chalk.cyan("[dll-link-plugin]: Rebuilding dll."));
 				console.log();
 
 				const assets = await this.bundleController.webpackBuild();

@@ -1,5 +1,8 @@
 import * as yarnParser from "./yarnParser";
 import * as fs from "fs";
+import * as path from "path";
+
+const NODE_MODULES_PATH = path.resolve("./node_modules");
 
 export interface YarnDependency {
 	version: string;
@@ -26,7 +29,7 @@ function convertEntryToList(entry: any): string[] {
 	}
 }
 
-export function getDependency(entry: any): PackageDependency | null {
+export function getDependencyFromYarn(entry: any): PackageDependency | null {
 	let entryList = convertEntryToList(entry);
 	const packageJson = JSON.parse(fs.readFileSync("package.json").toString());
 	if (!packageJson.dependencies) {
@@ -63,4 +66,12 @@ export function getDependency(entry: any): PackageDependency | null {
 	}
 
 	return findDependency(entryList);
+}
+
+export function getPKGVersion(yarnEntryName: string) {
+	const [entryName] = yarnEntryName.split("@");
+	const pkgPath = path.join(NODE_MODULES_PATH, entryName, "package.json");
+	const pkg = require(pkgPath);
+
+	return pkg.version;
 }
