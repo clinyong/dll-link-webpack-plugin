@@ -1,7 +1,12 @@
 import * as fs from "fs-extra";
 import * as webpack from "webpack";
 import * as md5 from "md5";
-import { getDependency, PackageDependency } from "./utils/packageDependency";
+import chalk from "chalk";
+import {
+	getDependencyFromYarn,
+	PackageDependency,
+	getPKGVersion
+} from "./utils/packageDependency";
 
 function isVersionEqual(
 	versionA: PackageDependency,
@@ -22,6 +27,13 @@ function isVersionEqual(
 	} else {
 		return false;
 	}
+}
+
+// just check entry version, not include entry dependency.
+function shadowCheckEntryVersion(entryVersion: PackageDependency) {
+	return Object.keys(entryVersion).every(
+		k => entryVersion[k].version === getPKGVersion(k)
+	);
 }
 
 export type DllEntry = string | string[] | webpack.Entry;
@@ -80,8 +92,18 @@ export class CacheController {
 	}
 
 	private checkCache(entry: DllEntry) {
-		const entryVersion = getDependency(entry);
-		if (entryVersion) {
+		const entryVersion = getDependencyFromYarn(entry);
+		const isYarnVersionRight = shadowCheckEntryVersion(entryVersion);
+
+		if (!isYarnVersionRight) {
+			console.log(
+				chalk.yellow(
+					"[dll-link-plugin]: Version in yarn is different from node_modules. Please reinstall package."
+				)
+			);
+		}
+
+		if (entryVersion && isYarnVersionRight) {
 			this.shouldUpdate =
 				this.currentConfigContent.outputJSNames.length === 0 ||
 				!isVersionEqual(
