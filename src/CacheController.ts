@@ -1,7 +1,7 @@
 import * as fs from "fs-extra";
 import * as webpack from "webpack";
 import * as md5 from "md5";
-import chalk from "chalk";
+import * as chalk from "chalk";
 import {
 	getDependencyFromYarn,
 	PackageDependency,
