@@ -59,18 +59,14 @@ export class CacheController {
 	private currentConfigContent: DllConfigFile;
 	private configIndex: string;
 	private shouldUpdate: boolean;
-	private cacheJSDir: string;
-	private cacheJSONDir: string;
 	private manifestFile: string;
 
 	constructor(options: CacheOptions) {
-		const { cacheDir, configIndex, manifestFile } = options;
+		const { configIndex, manifestFile } = options;
 
 		this.configIndex = configIndex;
 
 		this.manifestFile = manifestFile;
-		this.cacheJSDir = cacheDir.js;
-		this.cacheJSONDir = cacheDir.json;
 
 		this.readCacheFile();
 		this.checkCache(options.entry);
