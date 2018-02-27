@@ -9,6 +9,7 @@ import { BundleController } from "./BundleController";
 
 const cacheDir = path.resolve(".dll-link-plugin");
 const MANIFEST_FILE = "manifest.json";
+const pluginName = "DllLinkWebpackPlugin";
 
 export interface Output {
 	jsNames: string[];
@@ -37,6 +38,19 @@ function changeName(name: string, version: string) {
 	} else {
 		return name;
 	}
+}
+
+/**
+ * Takes a string in train case and transforms it to camel case
+ *
+ * Example: 'hello-my-world' to 'helloMyWorld'
+ *
+ * @param {string} word
+ */
+function trainCaseToCamelCase (word: string) {
+	return word.replace(/-([\w])/g, function (match, p1) {
+	  return p1.toUpperCase();
+	});
 }
 
 export class DllLinkWebpackPlugin {
@@ -108,11 +122,10 @@ export class DllLinkWebpackPlugin {
 			assets.js = jsNames.concat(assets.js);
 			cb(null, htmlPluginData);
 		};
-		if (compilation.hooks && compilation.hooks.htmlWebpackPluginBeforeHtmlGeneration) {
-			compilation.hooks.htmlWebpackPluginBeforeHtmlGeneration.tapAsync(
-				"dll-link-webpack-plugin",
-				hookFunction
-			);
+		if (compilation.hooks) {
+			if (compilation.hooks.htmlWebpackPluginBeforeHtmlGeneration) {
+				compilation.hooks.htmlWebpackPluginBeforeHtmlGeneration.tapAsync(pluginName, hookFunction);
+			}
 		} else {
 			compilation.plugin("html-webpack-plugin-before-html-generation", hookFunction);
 		}
@@ -185,20 +198,31 @@ export class DllLinkWebpackPlugin {
 		return cb();
 	}
 
+	attachCompiler(compiler, eventName: string, isAsync: boolean, func) {
+		if ("hooks" in compiler) {
+			eventName = trainCaseToCamelCase(eventName);
+			if (compiler.hooks[eventName]) {
+				compiler.hooks[eventName][isAsync ? "tapAsync" : "tap" ](pluginName, func);
+			}
+		} else {
+			compiler.plugin(eventName, func);
+		}
+	}
+
 	apply(compiler) {
 		const { htmlMode, assetsMode, appendVersion } = this.options;
-		compiler.plugin("before-compile", this.check);
+		this.attachCompiler(compiler, "before-compile", true , this.check);
 		if (htmlMode) {
 			// Hook into the html-webpack-plugin processing
-			compiler.plugin("compilation", this.hookIntoHTML);
+			this.attachCompiler(compiler, "compilation", false , this.hookIntoHTML);
 		}
 
 		if (appendVersion) {
-			compiler.plugin("emit", this.updateNames);
+			this.attachCompiler(compiler, "emit", true , this.updateNames);
 		}
 
 		if (htmlMode || assetsMode) {
-			compiler.plugin("emit", this.addAssets);
+			this.attachCompiler(compiler, "emit", true , this.addAssets);
 		}
 
 		this.bundleController.applyDllReferencePlugins(compiler);
