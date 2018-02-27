@@ -200,11 +200,13 @@ export class DllLinkWebpackPlugin {
 
 	attachCompiler(compiler, eventName: string, isAsync: boolean, func) {
 		if ("hooks" in compiler) {
+			// webpack 4
 			eventName = trainCaseToCamelCase(eventName);
 			if (compiler.hooks[eventName]) {
 				compiler.hooks[eventName][isAsync ? "tapAsync" : "tap" ](pluginName, func);
 			}
 		} else {
+			// webpack 2/3
 			compiler.plugin(eventName, func);
 		}
 	}
