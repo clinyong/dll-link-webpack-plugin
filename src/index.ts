@@ -176,7 +176,7 @@ export class DllLinkWebpackPlugin {
 		const chunks = compilation.chunks as any[];
 		for (let i = 0; i < chunks.length; i++) {
 			const chunk = chunks[i];
-			if (chunk.isInitial()) {
+			if ((typeof chunk.isInitial === "function" && chunk.isInitial()) || chunk.isInitial === true) {
 				chunk.files = chunk.files.map(file => {
 					entryChunks[file] = true;
 					return changeName(file, ver);
