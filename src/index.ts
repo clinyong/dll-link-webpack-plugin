@@ -156,11 +156,8 @@ export class DllLinkWebpackPlugin {
 				let assets = [];
 				try {
 					assets = await this.bundleController.webpackBuild();
-				} catch (e) {
-					console.error(chalk.red("[dll-link-plugin]: Build error..."));
-					console.log();
-					console.error(e);
-					console.log();
+				} catch (err) {
+					return cb(err);
 				}
 				this.cacheController.updateJSNamesCache(assets);
 			}

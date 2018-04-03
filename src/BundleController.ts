@@ -138,7 +138,7 @@ export class BundleController {
                 if (err) {
                     reject(err);
                 } else if ( stats.hasErrors() ) {
-                    reject(stats.toJson().errors.join("\n"));
+                    reject(new Error(stats.toJson().errors.join("\n")));
                 } else {
                     const assets = stats.toJson().assets.map(asset => asset.name);
                     this.modifyGenerateFileModifyTime();
