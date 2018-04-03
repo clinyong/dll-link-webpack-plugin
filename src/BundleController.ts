@@ -135,10 +135,16 @@ export class BundleController {
     public webpackBuild() {
         return new Promise<string[]>((resolve, reject) => {
             webpack(this.webpackConfig, (err, stats) => {
-                const assets = stats.toJson().assets.map(asset => asset.name);
-                this.modifyGenerateFileModifyTime();
-                this.updateOutputJSNames(assets);
-                return resolve(assets);
+                if (err) {
+                    reject(err);
+                } else if ( stats.hasErrors() ) {
+                    reject(new Error(stats.toJson().errors.join("\n")));
+                } else {
+                    const assets = stats.toJson().assets.map(asset => asset.name);
+                    this.modifyGenerateFileModifyTime();
+                    this.updateOutputJSNames(assets);
+                    resolve(assets);
+                }
             });
         });
     }
