@@ -1,1 +1,1 @@
-module.exports = 'I am simple lib.';
+module.exports = "I am simple lib.";

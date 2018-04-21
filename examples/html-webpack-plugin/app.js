@@ -1,2 +1,2 @@
-var lib = require('./lib');
+var lib = require("./lib");
 document.body.innerHTML = lib;
