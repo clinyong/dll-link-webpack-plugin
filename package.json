@@ -6,6 +6,9 @@
     "typings": "index.d.ts",
     "author": "clinyong <clinyong@gmail.com>",
     "license": "MIT",
+    "scripts": {
+        "precommit": "pretty-quick --staged"
+    },
     "keywords": [
         "webpack",
         "webpack plugin",
