@@ -50,7 +50,6 @@ export interface ManifestCache {
 export interface CacheOptions {
     configIndex: string;
     entry: DllEntry;
-    cacheDir: { js: string; json: string };
     manifestFile: string;
 }
 

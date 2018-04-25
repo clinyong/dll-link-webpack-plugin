@@ -83,11 +83,7 @@ export class DllLinkWebpackPlugin {
         this.cacheController = new CacheController({
             configIndex,
             entry,
-            manifestFile: `${cacheDir}/${MANIFEST_FILE}`,
-            cacheDir: {
-                js: this.cacheJSPath,
-                json: this.cacheJSONPath
-            }
+            manifestFile: `${cacheDir}/${MANIFEST_FILE}`
         });
         this.bundleController = new BundleController({
             webpackConfig: config,
