@@ -27,7 +27,7 @@ export interface CacheConfig {
 export interface BundleOptions {
     webpackConfig: webpack.Configuration;
     cacheConfig: CacheConfig;
-    manifestNames: string[];
+    manifestNames?: string[];
 }
 
 export class BundleController {
