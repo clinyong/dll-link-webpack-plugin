@@ -1,1 +1,1 @@
-module.exports = 'I am html lib.';
+module.exports = "I am html lib.";

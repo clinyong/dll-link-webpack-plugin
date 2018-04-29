@@ -1,1 +1,1 @@
-module.exports = 'I am multiple entries lib1.';
+module.exports = "I am multiple entries lib1.";

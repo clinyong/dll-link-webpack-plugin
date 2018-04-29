@@ -27,7 +27,7 @@ export interface CacheConfig {
 export interface BundleOptions {
     webpackConfig: webpack.Configuration;
     cacheConfig: CacheConfig;
-    manifestNames: string[];
+    manifestNames?: string[];
 }
 
 export class BundleController {
@@ -86,26 +86,40 @@ export class BundleController {
         this.pluginStartTime = Date.now();
     }
 
-    private initDllReferencePlugins(manifestNames: string[], dllOptions: webpack.DllPlugin.Options) {
+    private initDllReferencePlugins(
+        manifestNames: string[],
+        dllOptions: webpack.DllPlugin.Options
+    ) {
         let referenceNames = manifestNames || this.outputFiles.jsonNames;
-        let referenceConf: webpack.DllReferencePlugin.Options[] = referenceNames.map(name => ({
-            manifest: `${this.outputPath.json}/${name}`
-        }) as any);
+        let referenceConf: webpack.DllReferencePlugin.Options[] = referenceNames.map(
+            name =>
+                ({
+                    manifest: `${this.outputPath.json}/${name}`
+                } as any)
+        );
         if (dllOptions.context) {
             referenceConf = referenceConf.map(conf => ({
                 ...conf,
                 context: dllOptions.context
             }));
         }
-        this.referencePlugins = referenceConf.map(conf => new webpack.DllReferencePlugin(conf));
+        this.referencePlugins = referenceConf.map(
+            conf => new webpack.DllReferencePlugin(conf)
+        );
     }
 
     private modifyGenerateFileModifyTime() {
         let names = [
-            ...this.outputFiles.jsNames.map(name => `${this.outputPath.js.src}/${name}`),
-            ...this.outputFiles.jsonNames.map(name => `${this.outputPath.json}/${name}`),
+            ...this.outputFiles.jsNames.map(
+                name => `${this.outputPath.js.src}/${name}`
+            ),
+            ...this.outputFiles.jsonNames.map(
+                name => `${this.outputPath.json}/${name}`
+            )
         ];
-        const time = parseInt((Math.floor((this.pluginStartTime - FS_ACCURACY) / 1000)).toFixed());
+        const time = parseInt(
+            Math.floor((this.pluginStartTime - FS_ACCURACY) / 1000).toFixed()
+        );
         names.forEach(name => {
             fs.utimesSync(name, time, time);
         });
@@ -113,7 +127,9 @@ export class BundleController {
 
     private updateOutputJSNames(outputNames) {
         const list = this.manifestNames
-            .map(name => outputNames.find(cacheName => cacheName.indexOf(name) !== -1))
+            .map(name =>
+                outputNames.find(cacheName => cacheName.indexOf(name) !== -1)
+            )
             .filter(name => !!name);
 
         this.outputFiles.jsNames = list.length > 0 ? list : outputNames;
@@ -128,7 +144,9 @@ export class BundleController {
     public copyAllFiles() {
         const { dist, src } = this.outputPath.js;
         this.outputFiles.jsNames.forEach(name => {
-            fs.copySync(`${src}/${name}`, `${dist}/${name}`, { preserveTimestamps: true });
+            fs.copySync(`${src}/${name}`, `${dist}/${name}`, {
+                preserveTimestamps: true
+            });
         });
     }
 
@@ -137,10 +155,12 @@ export class BundleController {
             webpack(this.webpackConfig, (err, stats) => {
                 if (err) {
                     reject(err);
-                } else if ( stats.hasErrors() ) {
+                } else if (stats.hasErrors()) {
                     reject(new Error(stats.toJson().errors.join("\n")));
                 } else {
-                    const assets = stats.toJson().assets.map(asset => asset.name);
+                    const assets = stats
+                        .toJson()
+                        .assets.map(asset => asset.name);
                     this.modifyGenerateFileModifyTime();
                     this.updateOutputJSNames(assets);
                     resolve(assets);
