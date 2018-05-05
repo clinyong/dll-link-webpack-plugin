@@ -15,16 +15,16 @@ $ yarn add dll-link-webpack-plugin -D
 在 `webpack.config.js` 这个配置文件里面，用 `DllLinkPlugin` 替换掉 `DllReferencePlugin`。
 
 ```js
-var DllLinkPlugin = require('dll-link-webpack-plugin');
+var DllLinkPlugin = require("dll-link-webpack-plugin");
 
 module.exports = {
     // ...
     plugins: [
         new DllLinkPlugin({
-            config: require('webpack.dll.config.js')
+            config: require("webpack.dll.config.js")
         })
     ]
-}
+};
 ```
 
 然后运行
@@ -37,9 +37,9 @@ $ webpack --config webpack.config.js
 
 ### 配置
 
-- `htmlMode`: `true` | `false` 如果你用了 [html-webpack-plugin](https://github.com/jantimon/html-webpack-plugin)，生成出来的 DLL 文件会被自动引入 html 文件中。
-- `assetsMode`: `true` | `false` 把 DLL 文件输出为 webpack 的 assets 文件。
-- `appendVersion`: `true` | `false` 给每个 webpack 生成出的 entry 文件打上一个版本号。
+*   `htmlMode`: `true` | `false` 如果你用了 [html-webpack-plugin](https://github.com/jantimon/html-webpack-plugin)，生成出来的 DLL 文件会被自动引入 html 文件中。（默认值为 `false`）
+*   `assetsMode`: `true` | `false` 把 DLL 文件输出为 webpack 的 assets 文件。（默认值为 `false`）
+*   `appendVersion`: `true` | `false` 给每个 webpack 生成出的 entry 文件打上一个版本号。（默认值为 `false`）
 
 上面配置项的例子：
 
@@ -48,11 +48,11 @@ module.exports = {
     // ...
     plugins: [
         new DllLinkPlugin({
-            config: require('webpack.dll.config.js'),
+            config: require("webpack.dll.config.js"),
             appendVersion: true,
             assetsMode: true,
             htmlMode: true
         })
     ]
-}
+};
 ```

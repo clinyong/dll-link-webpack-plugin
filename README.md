@@ -9,6 +9,7 @@ A webpack plugin that simplifies creation of webpack DLL file. It is based on [D
 ```
 $ yarn add dll-link-webpack-plugin -D
 ```
+
 By now, this plugin uses `yarn.lock` to track dependency. So make sure you are using [yarn](https://yarnpkg.com/en/).
 
 ### Basic Usage
@@ -16,16 +17,16 @@ By now, this plugin uses `yarn.lock` to track dependency. So make sure you are u
 Replace `DllReferencePlugin` with `DllLinkPlugin` in your `webpack.config.js`
 
 ```js
-var DllLinkPlugin = require('dll-link-webpack-plugin');
+var DllLinkPlugin = require("dll-link-webpack-plugin");
 
 module.exports = {
     // ...
     plugins: [
         new DllLinkPlugin({
-            config: require('webpack.dll.config.js')
+            config: require("webpack.dll.config.js")
         })
     ]
-}
+};
 ```
 
 And directly run
@@ -38,9 +39,9 @@ This will automatically generate the DLL file. For more usage, see [examples](ht
 
 ### Configuration
 
-- `htmlMode`: `true` | `false` This is useful when you are using [html-webpack-plugin](https://github.com/jantimon/html-webpack-plugin). The DLL file will be included in the output html file.
-- `assetsMode`: `true` | `false` Emit the DLL file as webpack assets file.
-- `appendVersion`: `true` | `false` Append a DLL hash version to your webpack entry filenames.
+*   `htmlMode`: `true` | `false` This is useful when you are using [html-webpack-plugin](https://github.com/jantimon/html-webpack-plugin). The DLL file will be included in the output html file. (default is `false`)
+*   `assetsMode`: `true` | `false` Emit the DLL file as webpack assets file. (default is `false`)
+*   `appendVersion`: `true` | `false` Append a DLL hash version to your webpack entry filenames. (default is `false`)
 
 Example for above options:
 
@@ -49,11 +50,11 @@ module.exports = {
     // ...
     plugins: [
         new DllLinkPlugin({
-            config: require('webpack.dll.config.js'),
+            config: require("webpack.dll.config.js"),
             appendVersion: true,
             assetsMode: true,
             htmlMode: true
         })
     ]
-}
+};
 ```
