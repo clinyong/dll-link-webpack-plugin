@@ -1,4 +1,4 @@
-var DllLinkPlugin = require("dll-link-webpack-plugin");
+var DllLinkPlugin = require("../../");
 var path = require("path");
 
 module.exports = {

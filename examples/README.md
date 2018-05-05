@@ -20,7 +20,11 @@ $ yarn
 In the examples folder, run
 
 ```
-$ npm run simple
+$ npm run xxx
 ```
 
-And open the `index.html` to see the result.
+`xxx` can be
+
+*   simple
+*   multiple
+*   html
