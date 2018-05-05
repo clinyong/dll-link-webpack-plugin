@@ -11,10 +11,10 @@ module.exports = {
         path: path.resolve(__dirname, "../build")
     },
     plugins: [
+        new HtmlWebpackPlugin(),
         new DllLinkPlugin({
             config: require("./webpack.dll.config"),
             htmlMode: true
-        }),
-        new HtmlWebpackPlugin()
+        })
     ]
 };
