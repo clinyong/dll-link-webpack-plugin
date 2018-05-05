@@ -88,9 +88,11 @@ export class CacheController {
 
     private checkCache(entry: DllEntry) {
         const entryVersion = getDependencyFromYarn(entry);
-        const isYarnVersionRight = shadowCheckEntryVersion(entryVersion);
 
-        if (!isYarnVersionRight) {
+        const isYarnVersionRight =
+            entryVersion && shadowCheckEntryVersion(entryVersion);
+
+        if (entryVersion && !isYarnVersionRight) {
             console.log(
                 chalk.yellow(
                     "[dll-link-plugin]: Version in yarn is different from node_modules. Please reinstall package."
@@ -98,7 +100,7 @@ export class CacheController {
             );
         }
 
-        if (entryVersion && isYarnVersionRight) {
+        if (isYarnVersionRight) {
             this.shouldUpdate =
                 this.currentConfigContent.outputJSNames.length === 0 ||
                 !isVersionEqual(
