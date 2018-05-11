@@ -35,7 +35,8 @@
         "fs-extra": "^5.0.0",
         "invariant": "^2.2.2",
         "lodash": "^4.17.4",
-        "md5": "^2.2.1"
+        "md5": "^2.2.1",
+        "strip-bom": "^3.0.0"
     },
     "repository": {
         "type": "git",
