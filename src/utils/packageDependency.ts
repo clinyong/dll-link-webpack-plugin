@@ -69,8 +69,11 @@ export function getDependencyFromYarn(entry: any): PackageDependency | null {
 }
 
 export function getPKGVersion(yarnEntryName: string) {
-    const [entryName] = yarnEntryName.split("@");
-    const pkgPath = path.join(NODE_MODULES_PATH, entryName, "package.json");
+    const atIndex = yarnEntryName.lastIndexOf("@");
+    if (atIndex > 0) {
+        yarnEntryName = yarnEntryName.substring(0, atIndex);
+    }
+    const pkgPath = path.join(NODE_MODULES_PATH, yarnEntryName, "package.json");
     const pkg = require(pkgPath);
 
     return pkg.version;
