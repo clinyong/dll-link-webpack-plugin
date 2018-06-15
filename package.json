@@ -7,6 +7,7 @@
     "author": "clinyong <clinyong@gmail.com>",
     "license": "MIT",
     "scripts": {
+        "prepare": "tsc",
         "test": "jest"
     },
     "keywords": [
