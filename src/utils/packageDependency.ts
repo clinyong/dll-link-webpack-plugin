@@ -45,9 +45,16 @@ export function getDependencyFromYarn(entry: any): PackageDependency | null {
     const content = fs.readFileSync("yarn.lock").toString();
     const yarnInfo = yarnParser.parse(content, "yarn.lock");
 
-    function findDependency(entryList: string[]): PackageDependency {
+    function findDependency(
+        entryList: string[],
+        history?: string[]
+    ): PackageDependency {
         let m: PackageDependency = {};
         entryList.map(k => {
+            if (history && history.indexOf(k) >= 0) {
+                // skip circular dependency
+                return;
+            }
             const info = yarnInfo[k];
             let item: YarnDependency = {
                 version: info.version
@@ -56,7 +63,8 @@ export function getDependencyFromYarn(entry: any): PackageDependency | null {
                 item.dependencies = findDependency(
                     Object.keys(info.dependencies).map(
                         k => `${k}@${info.dependencies[k]}`
-                    )
+                    ),
+                    history ? [...history, k] : [k]
                 );
             }
 
