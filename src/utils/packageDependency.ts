@@ -1,4 +1,4 @@
-import * as yarnParser from "./yarnParser";
+import yarnParse from "./yarnParser";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -43,7 +43,7 @@ export function getDependencyFromYarn(entry: any): PackageDependency | null {
         })
         .filter(item => !!item);
     const content = fs.readFileSync("yarn.lock").toString();
-    const yarnInfo = yarnParser.parse(content, "yarn.lock");
+    const yarnInfo = yarnParse(content, "yarn.lock");
 
     function findDependency(
         entryList: string[],

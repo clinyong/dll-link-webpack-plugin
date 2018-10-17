@@ -1,7 +1,23 @@
+import * as util from "util";
 import * as invariant from "invariant";
 import * as stripBOM from "strip-bom";
 
 const LOCKFILE_VERSION = 1;
+
+type Token = {
+    line: number;
+    col: number;
+    type: string;
+    value: boolean | number | string | void;
+};
+
+export type ParseResultType = "merge" | "success" | "conflict";
+
+export type ParseResult = {
+    type: ParseResultType;
+    object: Object;
+};
+
 const VERSION_REGEX = /^yarn lockfile v(\d+)$/;
 
 const TOKEN_TYPES = {
@@ -28,13 +44,6 @@ function isValidPropValueToken(token): boolean {
     return VALID_PROP_VALUE_TOKENS.indexOf(token.type) >= 0;
 }
 
-type Token = {
-    line: number;
-    col: number;
-    type: string;
-    value: boolean | number | string | void;
-};
-
 function* tokenise(input: string): Iterator<Token> {
     let lastNewline = false;
     let line = 1;
@@ -47,53 +56,56 @@ function* tokenise(input: string): Iterator<Token> {
     while (input.length) {
         let chop = 0;
 
-        if (input[0] === "\n") {
+        if (input[0] === "\n" || input[0] === "\r") {
             chop++;
+            // If this is a \r\n line, ignore both chars but only add one new line
+            if (input[1] === "\n") {
+                chop++;
+            }
             line++;
             col = 0;
             yield buildToken(TOKEN_TYPES.newline);
         } else if (input[0] === "#") {
             chop++;
 
-            let val = "";
-            while (input[chop] !== "\n") {
-                val += input[chop];
-                chop++;
+            let nextNewline = input.indexOf("\n", chop);
+            if (nextNewline === -1) {
+                nextNewline = input.length;
             }
+            const val = input.substring(chop, nextNewline);
+            chop = nextNewline;
             yield buildToken(TOKEN_TYPES.comment, val);
         } else if (input[0] === " ") {
             if (lastNewline) {
-                let indent = "";
-                for (let i = 0; input[i] === " "; i++) {
-                    indent += input[i];
+                let indentSize = 1;
+                for (let i = 1; input[i] === " "; i++) {
+                    indentSize++;
                 }
 
-                if (indent.length % 2) {
+                if (indentSize % 2) {
                     throw new TypeError("Invalid number of spaces");
                 } else {
-                    chop = indent.length;
-                    yield buildToken(TOKEN_TYPES.indent, indent.length / 2);
+                    chop = indentSize;
+                    yield buildToken(TOKEN_TYPES.indent, indentSize / 2);
                 }
             } else {
                 chop++;
             }
         } else if (input[0] === '"') {
-            let val = "";
-
-            for (let i = 0; ; i++) {
-                const currentChar = input[i];
-                val += currentChar;
-
-                if (i > 0 && currentChar === '"') {
+            let i = 1;
+            for (; i < input.length; i++) {
+                if (input[i] === '"') {
                     const isEscaped =
                         input[i - 1] === "\\" && input[i - 2] !== "\\";
                     if (!isEscaped) {
+                        i++;
                         break;
                     }
                 }
             }
+            const val = input.substring(0, i);
 
-            chop = val.length;
+            chop = i;
 
             try {
                 yield buildToken(TOKEN_TYPES.string, JSON.parse(val));
@@ -105,10 +117,7 @@ function* tokenise(input: string): Iterator<Token> {
                 }
             }
         } else if (/^[0-9]/.test(input)) {
-            let val = "";
-            for (let i = 0; /^[0-9]$/.test(input[i]); i++) {
-                val += input[i];
-            }
+            const val = /^[0-9]+/.exec(input)[0];
             chop = val.length;
 
             yield buildToken(TOKEN_TYPES.number, +val);
@@ -125,21 +134,21 @@ function* tokenise(input: string): Iterator<Token> {
             yield buildToken(TOKEN_TYPES.comma);
             chop++;
         } else if (/^[a-zA-Z\/-]/g.test(input)) {
-            let name = "";
-            for (let i = 0; i < input.length; i++) {
+            let i = 0;
+            for (; i < input.length; i++) {
                 const char = input[i];
                 if (
                     char === ":" ||
                     char === " " ||
                     char === "\n" ||
+                    char === "\r" ||
                     char === ","
                 ) {
                     break;
-                } else {
-                    name += char;
                 }
             }
-            chop = name.length;
+            const name = input.substring(0, i);
+            chop = i;
 
             yield buildToken(TOKEN_TYPES.string, name);
         } else {
@@ -152,21 +161,12 @@ function* tokenise(input: string): Iterator<Token> {
         }
 
         col += chop;
-        lastNewline = input[0] === "\n";
+        lastNewline =
+            input[0] === "\n" || (input[0] === "\r" && input[1] === "\n");
         input = input.slice(chop);
     }
 
     yield buildToken(TOKEN_TYPES.eof);
-}
-
-export interface PackageInfo {
-    dependencies: { [index: string]: string };
-    resolved: string;
-    version: string;
-}
-
-export interface LockInfo {
-    [index: string]: PackageInfo;
 }
 
 class Parser {
@@ -182,20 +182,22 @@ class Parser {
     comments: Array<string>;
 
     onComment(token: Token) {
-        const value = token.value as string;
+        const value = token.value;
         invariant(
             typeof value === "string",
             "expected token value to be a string"
         );
 
-        const comment = value.trim();
+        const comment = (value as string).trim();
 
         const versionMatch = comment.match(VERSION_REGEX);
         if (versionMatch) {
             const version = +versionMatch[1];
             if (version > LOCKFILE_VERSION) {
-                throw `Can't install from a lockfile of version ${version} as you're on an old yarn version that only supports ` +
-                    `versions up to ${LOCKFILE_VERSION}. Run \`$ yarn self-update\` to upgrade to the latest version.`;
+                throw new Error(
+                    `Can't install from a lockfile of version ${version} as you're on an old yarn version that only supports ` +
+                        `versions up to ${LOCKFILE_VERSION}. Run \`$ yarn self-update\` to upgrade to the latest version.`
+                );
             }
         }
 
@@ -223,8 +225,25 @@ class Parser {
         );
     }
 
-    parse(indent: number = 0): LockInfo {
-        const obj = {};
+    expect(tokType: string) {
+        if (this.token.type === tokType) {
+            this.next();
+        } else {
+            this.unexpected();
+        }
+    }
+
+    eat(tokType: string): boolean {
+        if (this.token.type === tokType) {
+            this.next();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    parse(indent: number = 0): Object {
+        const obj = Object.create(null);
 
         while (true) {
             const propToken = this.token;
@@ -306,7 +325,7 @@ class Parser {
                     this.unexpected("Invalid value type");
                 }
             } else {
-                this.unexpected("Unknown token");
+                this.unexpected(`Unknown token: ${util.inspect(propToken)}`);
             }
         }
 
@@ -314,9 +333,106 @@ class Parser {
     }
 }
 
-export function parse(str: string, fileLoc: string = "lockfile"): LockInfo {
-    str = stripBOM(str);
+const MERGE_CONFLICT_ANCESTOR = "|||||||";
+const MERGE_CONFLICT_END = ">>>>>>>";
+const MERGE_CONFLICT_SEP = "=======";
+const MERGE_CONFLICT_START = "<<<<<<<";
+
+/**
+ * Extract the two versions of the lockfile from a merge conflict.
+ */
+function extractConflictVariants(str: string): [string, string] {
+    const variants = [[], []];
+    const lines = str.split(/\r?\n/g);
+    let skip = false;
+
+    while (lines.length) {
+        const line = lines.shift();
+        if (line.startsWith(MERGE_CONFLICT_START)) {
+            // get the first variant
+            while (lines.length) {
+                const conflictLine = lines.shift();
+                if (conflictLine === MERGE_CONFLICT_SEP) {
+                    skip = false;
+                    break;
+                } else if (
+                    skip ||
+                    conflictLine.startsWith(MERGE_CONFLICT_ANCESTOR)
+                ) {
+                    skip = true;
+                    continue;
+                } else {
+                    variants[0].push(conflictLine);
+                }
+            }
+
+            // get the second variant
+            while (lines.length) {
+                const conflictLine = lines.shift();
+                if (conflictLine.startsWith(MERGE_CONFLICT_END)) {
+                    break;
+                } else {
+                    variants[1].push(conflictLine);
+                }
+            }
+        } else {
+            variants[0].push(line);
+            variants[1].push(line);
+        }
+    }
+
+    return [variants[0].join("\n"), variants[1].join("\n")];
+}
+
+/**
+ * Check if a lockfile has merge conflicts.
+ */
+function hasMergeConflicts(str: string): boolean {
+    return (
+        str.includes(MERGE_CONFLICT_START) &&
+        str.includes(MERGE_CONFLICT_SEP) &&
+        str.includes(MERGE_CONFLICT_END)
+    );
+}
+
+/**
+ * Parse the lockfile.
+ */
+function parse(str: string, fileLoc: string): Object {
     const parser = new Parser(str, fileLoc);
     parser.next();
     return parser.parse();
+}
+
+/**
+ * Parse and merge the two variants in a conflicted lockfile.
+ */
+function parseWithConflict(str: string, fileLoc: string): ParseResult {
+    const variants = extractConflictVariants(str);
+    try {
+        return {
+            type: "merge",
+            object: Object.assign(
+                {},
+                parse(variants[0], fileLoc),
+                parse(variants[1], fileLoc)
+            )
+        };
+    } catch (err) {
+        if (err instanceof SyntaxError) {
+            return { type: "conflict", object: {} };
+        } else {
+            throw err;
+        }
+    }
+}
+
+export default function(
+    str: string,
+    fileLoc: string = "lockfile"
+): ParseResult {
+    str = stripBOM(str);
+    return hasMergeConflicts(str)
+        ? parseWithConflict(str, fileLoc)
+        : { type: "success", object: parse(str, fileLoc) };
 }
