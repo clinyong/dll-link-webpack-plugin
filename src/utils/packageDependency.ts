@@ -43,7 +43,7 @@ export function getDependencyFromYarn(entry: any): PackageDependency | null {
         })
         .filter(item => !!item);
     const content = fs.readFileSync("yarn.lock").toString();
-    const yarnInfo = yarnParse(content, "yarn.lock");
+    const yarnInfo = yarnParse(content, "yarn.lock").object;
 
     function findDependency(
         entryList: string[],
