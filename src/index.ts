@@ -53,6 +53,14 @@ function trainCaseToCamelCase(word: string) {
     });
 }
 
+// str1 may be a http url, so we can not use path.join here.
+function joinString(str1: string, str2: string) {
+    let newStr1 = str1.endsWith("/") ? str1.slice(0, str1.length - 1) : str1;
+    let newStr2 = str2.startsWith("/") ? str2.slice(1) : str2;
+
+    return `${newStr1}/${newStr2}`;
+}
+
 export class DllLinkWebpackPlugin {
     cacheController: CacheController;
     bundleController: BundleController;
@@ -111,7 +119,7 @@ export class DllLinkWebpackPlugin {
                     return false;
                 });
             if (publicPath) {
-                jsNames = jsNames.map(name => path.join(publicPath, name));
+                jsNames = jsNames.map(name => joinString(publicPath, name));
             }
 
             const assets = htmlPluginData.assets as { js: string[] };
