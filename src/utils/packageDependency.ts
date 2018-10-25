@@ -1,6 +1,5 @@
-import yarnParse from "./yarnParser";
-import * as fs from "fs";
 import * as path from "path";
+import { getPackageList } from "@fmtk/package-list";
 
 const NODE_MODULES_PATH = path.resolve("./node_modules");
 
@@ -31,19 +30,22 @@ function convertEntryToList(entry: any): string[] {
 
 export function getDependencyFromYarn(entry: any): PackageDependency | null {
     let entryList = convertEntryToList(entry);
-    const packageJson = JSON.parse(fs.readFileSync("package.json").toString());
-    if (!packageJson.dependencies) {
+    const packages = getPackageList();
+    if (!packages) {
         return null;
+    }
+
+    const root = packages[".@."];
+    if (!root || !root.dependencies) {
+        return;
     }
 
     entryList = entryList
         .map(item => {
-            const version = packageJson.dependencies[item];
+            const version = root.dependencies[item];
             return version ? `${item}@${version}` : "";
         })
         .filter(item => !!item);
-    const content = fs.readFileSync("yarn.lock").toString();
-    const yarnInfo = yarnParse(content, "yarn.lock").object;
 
     function findDependency(
         entryList: string[],
@@ -55,7 +57,7 @@ export function getDependencyFromYarn(entry: any): PackageDependency | null {
                 // skip circular dependency
                 return;
             }
-            const info = yarnInfo[k];
+            const info = packages[k];
             let item: YarnDependency = {
                 version: info.version
             };
