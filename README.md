@@ -10,8 +10,6 @@ A webpack plugin that simplifies creation of webpack DLL file. It is based on [D
 $ yarn add dll-link-webpack-plugin -D
 ```
 
-By now, this plugin uses `yarn.lock` to track dependency. So make sure you are using [yarn](https://yarnpkg.com/en/).
-
 ### Basic Usage
 
 Replace `DllReferencePlugin` with `DllLinkPlugin` in your `webpack.config.js`
