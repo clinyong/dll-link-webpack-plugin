@@ -8,8 +8,6 @@
 $ yarn add dll-link-webpack-plugin -D
 ```
 
-目前这个插件是用 `yarn.lock` 来追踪依赖，所以确保你是用 [yarn](https://yarnpkg.com/zh-Hans/) 来安装依赖。
-
 ### 基础用法
 
 在 `webpack.config.js` 这个配置文件里面，用 `DllLinkPlugin` 替换掉 `DllReferencePlugin`。
