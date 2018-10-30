@@ -20,6 +20,7 @@ export interface Output {
 
 export interface DllLinkWebpackPluginOptions {
     config: webpack.Configuration;
+    HtmlWebpackPlugin?: any;
     manifestNames?: string[];
     assetsMode?: boolean;
     htmlMode?: boolean;
@@ -129,6 +130,15 @@ export class DllLinkWebpackPlugin {
         if (compilation.hooks) {
             if (compilation.hooks.htmlWebpackPluginBeforeHtmlGeneration) {
                 compilation.hooks.htmlWebpackPluginBeforeHtmlGeneration.tapAsync(
+                    pluginName,
+                    hookFunction
+                );
+            } else if (this.options.HtmlWebpackPlugin) {
+                // HtmlWebPackPlugin 4.x
+                const hooks = this.options.HtmlWebpackPlugin.getHooks(
+                    compilation
+                );
+                hooks.beforeAssetTagGeneration.tapAsync(
                     pluginName,
                     hookFunction
                 );
