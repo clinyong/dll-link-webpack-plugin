@@ -56,6 +56,10 @@ function trainCaseToCamelCase(word: string) {
 
 // str1 may be a http url, so we can not use path.join here.
 function joinString(str1: string, str2: string) {
+    if (str1 === "") {
+        return str2;
+    }
+
     let newStr1 = str1.endsWith("/") ? str1.slice(0, str1.length - 1) : str1;
     let newStr2 = str2.startsWith("/") ? str2.slice(1) : str2;
 
@@ -108,23 +112,23 @@ export class DllLinkWebpackPlugin {
 
     hookIntoHTML(compilation) {
         const hookFunction = (htmlPluginData, cb) => {
-            const { publicPath } = this.options.config.output;
-            let jsNames = this.cacheController
-                .getCacheJSNames()
-                .filter(item => {
-                    // only include js files(there may be map files in it)
-                    const ext = item.split(".").reverse()[0];
-                    if (ext === "js") {
-                        return true;
-                    }
-                    return false;
-                });
-            if (publicPath) {
-                jsNames = jsNames.map(name => joinString(publicPath, name));
-            }
+            const { publicPath = "" } = this.options.config.output;
+            const jsFiles = [],
+                cssFiles = [];
 
-            const assets = htmlPluginData.assets as { js: string[] };
-            assets.js = jsNames.concat(assets.js);
+            this.cacheController.getCacheJSNames().forEach(item => {
+                const ext = item.split(".").reverse()[0];
+                if (ext === "js") {
+                    jsFiles.push(joinString(publicPath, item));
+                } else if (ext === "css") {
+                    cssFiles.push(joinString(publicPath, item));
+                }
+            });
+
+            const assets = htmlPluginData.assets;
+            assets.js = jsFiles.concat(assets.js);
+            assets.css = cssFiles.concat(assets.css);
+
             cb(null, htmlPluginData);
         };
         if (compilation.hooks) {
