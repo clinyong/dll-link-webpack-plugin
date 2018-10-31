@@ -1,5 +1,6 @@
 import * as webpack from "webpack";
 import * as fs from "fs-extra";
+import * as path from "path";
 
 const FS_ACCURACY = 10000;
 
@@ -60,7 +61,10 @@ export class BundleController {
         const dllJsonFullPath = dllOptions.path;
         const i = dllJsonFullPath.lastIndexOf("/");
         const jsonNameTPL = dllJsonFullPath.slice(i + 1);
-        dllPlugin.options.path = `${cacheConfig.cacheJSONPath}/${jsonNameTPL}`;
+        dllPlugin.options.path = path.join(
+            cacheConfig.cacheJSONPath,
+            jsonNameTPL
+        );
         webpackConfig.plugins[index] = dllPlugin;
 
         let outputJsonNames = [];
@@ -94,7 +98,7 @@ export class BundleController {
         let referenceConf: webpack.DllReferencePlugin.Options[] = referenceNames.map(
             name =>
                 ({
-                    manifest: `${this.outputPath.json}/${name}`
+                    manifest: path.join(this.outputPath.json, name)
                 } as any)
         );
         if (dllOptions.context) {
@@ -110,11 +114,11 @@ export class BundleController {
 
     private modifyGenerateFileModifyTime() {
         let names = [
-            ...this.outputFiles.jsNames.map(
-                name => `${this.outputPath.js.src}/${name}`
+            ...this.outputFiles.jsNames.map(name =>
+                path.join(this.outputPath.js.src, name)
             ),
-            ...this.outputFiles.jsonNames.map(
-                name => `${this.outputPath.json}/${name}`
+            ...this.outputFiles.jsonNames.map(name =>
+                path.join(this.outputPath.json, name)
             )
         ];
         const time = parseInt(
@@ -144,7 +148,7 @@ export class BundleController {
     public copyAllFiles() {
         const { dist, src } = this.outputPath.js;
         this.outputFiles.jsNames.forEach(name => {
-            fs.copySync(`${src}/${name}`, `${dist}/${name}`, {
+            fs.copySync(path.join(src, name), path.join(dist, name), {
                 preserveTimestamps: true
             });
         });

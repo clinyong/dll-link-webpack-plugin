@@ -90,13 +90,13 @@ export class DllLinkWebpackPlugin {
         const { entry } = config;
 
         const configIndex = md5Slice(JSON.stringify(config));
-        this.cacheJSPath = `${cacheDir}/${configIndex}/js`;
-        this.cacheJSONPath = `${cacheDir}/${configIndex}/json`;
+        this.cacheJSPath = path.join(cacheDir, configIndex, "js");
+        this.cacheJSONPath = path.join(cacheDir, configIndex, "json");
 
         this.cacheController = new CacheController({
             configIndex,
             entry,
-            manifestFile: `${cacheDir}/${MANIFEST_FILE}`
+            manifestFile: path.join(cacheDir, MANIFEST_FILE)
         });
         this.bundleController = new BundleController({
             webpackConfig: config,
