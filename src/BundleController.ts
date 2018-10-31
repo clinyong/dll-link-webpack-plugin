@@ -59,8 +59,7 @@ export class BundleController {
         const dllPlugin: any = plugins[index];
         const dllOptions: webpack.DllPlugin.Options = dllPlugin.options;
         const dllJsonFullPath = dllOptions.path;
-        const i = dllJsonFullPath.lastIndexOf("/");
-        const jsonNameTPL = dllJsonFullPath.slice(i + 1);
+        const jsonNameTPL = path.basename(dllJsonFullPath);
         dllPlugin.options.path = path.join(
             cacheConfig.cacheJSONPath,
             jsonNameTPL
